@@ -431,6 +431,15 @@ public class Unit : MonoBehaviour {
 		}
 	}
 	
+	public void StopMoving(){
+		currentMoveSpd=0;
+		
+	}
+	public void ResumeMoving(){
+		if(unitC!=null) currentMoveSpd=unitC.moveSpeed;
+		else if(unitT!=null) currentMoveSpd=unitC.moveSpeed;
+	}
+	
 	
 	public int GetWPCounter(){
 		return wpCounter;

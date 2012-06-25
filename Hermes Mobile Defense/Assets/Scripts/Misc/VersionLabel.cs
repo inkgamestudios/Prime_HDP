@@ -14,6 +14,6 @@ public class VersionLabel : MonoBehaviour {
 	}
 	
 	void OnGUI(){
-		GUI.Label(new Rect(Screen.width/2-105, Screen.height-24, 450, 25), "TDTK version2.0.3 Demo by K.SongTan");
+		GUI.Label(new Rect(Screen.width/2-105, Screen.height-24, 450, 25), "TDTK version2.0.4 Demo by K.SongTan");
 	}
 }

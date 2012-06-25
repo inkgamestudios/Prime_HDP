@@ -9,7 +9,8 @@ public class ShootObject : MonoBehaviour {
 	
 	
 	public Unit target;
-	private UnitTower source;
+	private UnitTower srcTower;
+	private UnitCreepAttack srcCreep;
 	private Transform shootPoint;
 	
 	private bool hit=true;
@@ -102,13 +103,29 @@ public class ShootObject : MonoBehaviour {
 	
 	}
 	
+	
+	public void Shoot(Unit tgt, UnitCreepAttack src){
+		Shoot(tgt, src, null);
+	}
+	
+	public void Shoot(Unit tgt, UnitCreepAttack src, Transform sp){
+		target=tgt;
+		srcCreep=src;
+		shootPoint=sp;
+		
+		hit=false;
+		
+		_Shoot();
+	}
+	
+	
 	public void Shoot(Unit tgt, UnitTower src){
 		Shoot(tgt, src, null);
 	}
 	
 	public void Shoot(Unit tgt, UnitTower src, Transform sp){
 		target=tgt;
-		source=src;
+		srcTower=src;
 		shootPoint=sp;
 		
 		hit=false;
@@ -241,7 +258,9 @@ public class ShootObject : MonoBehaviour {
 	
 	IEnumerator BeamRoutine(){
 		
-		float tempDuration=Mathf.Min(source.GetCooldown()*0.5f, duration);
+		float tempDuration=0.1f;
+		if(srcTower!=null) tempDuration=Mathf.Min(srcTower.GetCooldown()*0.5f, duration);
+		else if(srcCreep!=null) tempDuration=Mathf.Min(srcCreep.cooldown*0.5f, duration);
 		if(tempDuration<=0) tempDuration=Time.deltaTime/2;
 		
 		if(continousDamage) StartCoroutine(BeamRoutineDamage(tempDuration));
@@ -352,14 +371,16 @@ public class ShootObject : MonoBehaviour {
 	
 	
 	public void HitContinous(int count){
-		if(source) source.HitTarget(thisT.position, target, false, count);
+		if(srcTower) srcTower.HitTarget(thisT.position, target, false, count);
+		else if(srcCreep) srcCreep.HitTarget(thisT.position, target, false, count);
 	}
 	
 	public void HitContinousF(int count){
 		if(hitAudio!=null) AudioManager.PlaySound(hitAudio, thisT.position);
 		if(hitEffect!=null) ObjectPoolManager.Spawn(hitEffect, target.thisT.position, Quaternion.identity);
 		
-		if(source) source.HitTarget(thisT.position, target, true, count);
+		if(srcTower) srcTower.HitTarget(thisT.position, target, true, count);
+		else if(srcCreep) srcCreep.HitTarget(thisT.position, target, true, count);
 		
 		StartCoroutine(Unspawn());
 	}
@@ -370,7 +391,8 @@ public class ShootObject : MonoBehaviour {
 		if(hitAudio!=null) AudioManager.PlaySound(hitAudio, thisT.position);
 		if(hitEffect!=null) ObjectPoolManager.Spawn(hitEffect, target.thisT.position, Quaternion.identity);
 		
-		if(source) source.HitTarget(thisT.position, target);
+		if(srcTower) srcTower.HitTarget(thisT.position, target);
+		else if(srcCreep) srcCreep.HitTarget(thisT.position, target);
 		
 		StartCoroutine(Unspawn());
 	}

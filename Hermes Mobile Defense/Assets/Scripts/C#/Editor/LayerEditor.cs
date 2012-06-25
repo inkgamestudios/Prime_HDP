@@ -25,6 +25,8 @@ public class LayerEditor : Editor {
 	public override void OnInspectorGUI(){
 		LayerManager lm = (LayerManager)target;
 		
+		GUI.changed = false;
+		
 		lm.layerCreep=EditorGUILayout.LayerField("Creep Layer:", lm.layerCreep);
 		lm.layerCreepF=EditorGUILayout.LayerField("CreepF Layer:", lm.layerCreepF);
 		lm.layerTower=EditorGUILayout.LayerField("Tower Layer:", lm.layerTower);
@@ -35,5 +37,7 @@ public class LayerEditor : Editor {
 		//~ lm.layerCreepF=Mathf.Clamp(lm.layerCreepF, 0, 31);
 		//~ lm.layerTower=Mathf.Clamp(lm.layerTower, 0, 31);
 		//~ lm.layerPlatform=Mathf.Clamp(lm.layerPlatform, 0, 31);
+		
+		if(GUI.changed) EditorUtility.SetDirty(lm);
 	}
 }
