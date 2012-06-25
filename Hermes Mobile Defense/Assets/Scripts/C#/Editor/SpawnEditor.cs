@@ -118,7 +118,7 @@ public class SpawnEditor : EditorWindow {
 						spawnManager.waves[i].subWaves[0]=new SubWave();
 					}
 					
-					GUI.Box(new Rect(startX, startY+spaceY-1, Mathf.Max(310, spawnManager.waves[i].subWaves.Length*199+3), 225+(rscCount*20)), "");
+					GUI.Box(new Rect(startX, startY+spaceY-1, Mathf.Max(310, spawnManager.waves[i].subWaves.Length*199+3), 210+(rscCount*21)), "");
 	        		
 	        		startX+=3; startY+=3;
 	        		
@@ -165,8 +165,12 @@ public class SpawnEditor : EditorWindow {
 					
 					startX=6;
 	        		
-	        		spawnManager.waves[i].waveInterval=EditorGUI.FloatField(new Rect(startX, startY+=spaceY, 300, 15), "Duration before next Wave:", spawnManager.waves[i].waveInterval);
+	        		//spawnManager.waves[i].waveInterval=EditorGUI.FloatField(new Rect(startX, startY+=spaceY, 300, 15), "Duration before next Wave:", spawnManager.waves[i].waveInterval);
 	        		//spawnManager.waves[i].resource=EditorGUI.IntField(new Rect(startX, startY+=spaceY, 300, 15), "Resource Upon Wave Clear:", spawnManager.waves[i].resource);
+					
+					EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, 15), "Time before next wave:");
+	        		spawnManager.waves[i].waveInterval=EditorGUI.FloatField(new Rect(startX+150, startY+=spaceY, 80, 15), spawnManager.waves[i].waveInterval);
+	        		EditorGUI.LabelField(new Rect(startX+250, startY, 200, 15), CalculateWaveSpawnDuration(spawnManager.waves[i].subWaves).ToString());
         			
 					if(rscCount!=spawnManager.waves[i].resourceGain.Length){
 						UpdateResourceGain(i, rscCount);
@@ -333,6 +337,17 @@ public class SpawnEditor : EditorWindow {
 			}
 		}
 		return count;
+	}
+	
+	float CalculateWaveSpawnDuration(SubWave[] subWaveList){
+		float duration=0;
+		foreach(SubWave subWave in subWaveList){
+			float tempDuration=subWave.count*subWave.interval+subWave.delay;
+			if(tempDuration>duration){
+				duration=tempDuration;
+			}
+		}
+		return duration;
 	}
     
 }

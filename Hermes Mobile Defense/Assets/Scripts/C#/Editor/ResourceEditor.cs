@@ -28,6 +28,8 @@ public class ResourceEditor : Editor {
 	public override void OnInspectorGUI(){
 		rm = (ResourceManager)target;
 		
+		GUI.changed = false;
+		
 		EditorGUILayout.Space();
 		num=EditorGUILayout.IntField("Total ResourceType: ", num);
 		if(num<=0) num=1;
@@ -50,6 +52,8 @@ public class ResourceEditor : Editor {
 				}
 			}
 		}
+		
+		if(GUI.changed) EditorUtility.SetDirty(rm);
 	}
 	
 	void UpdateResourceSize(int n){

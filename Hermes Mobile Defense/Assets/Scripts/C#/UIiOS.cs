@@ -12,9 +12,11 @@ public class UIiOS : MonoBehaviour {
 	public string mainMenu="";
 	
 	public GUIText generalUIText;
+	public GUIText messageUIText;
 	
 	public GUIButton spawnButton;
 	public GUIToggleButton ffButton;
+	public GUIToggleButton pauseButton;
 	public GUIButton upgradeButton;
 	public GUIToggleButton sellButton;
 	
@@ -46,6 +48,9 @@ public class UIiOS : MonoBehaviour {
 		ffButton.callBackFunc=this.OnFastForwardButton;
 		StartCoroutine(ffButton.Update());
 		
+		pauseButton.callBackFunc=this.OnPauseButton;
+		StartCoroutine(pauseButton.Update());
+		
 		upgradeButton.callBackFunc=this.OnUpgradeTowerButton;
 		StartCoroutine(upgradeButton.Update());
 		
@@ -71,6 +76,8 @@ public class UIiOS : MonoBehaviour {
 		UnitTower.DestroyE += TowerDestroy;
 		
 		UpdateGeneralUIText();
+		
+		BuildManager.InitiateSampleTower();
 	}
 	
 	
@@ -132,17 +139,20 @@ public class UIiOS : MonoBehaviour {
 		
 		winLostFlag=flag;
 		
-		generalUIText.anchor=TextAnchor.MiddleCenter;
-		generalUIText.alignment=TextAlignment.Center;
-		generalUIText.transform.position=new Vector3(0.5f, 0.75f, 0);
+		//generalUIText.anchor=TextAnchor.MiddleCenter;
+		//generalUIText.alignment=TextAlignment.Center;
+		//generalUIText.transform.position=new Vector3(0.5f, 0.75f, 0);
+		
+		generalUIText.text="";
+		pauseButton.buttonObj.enabled=false;
 		
 		if(winLostFlag){
 			GameMessage.DisplayMessage("level completed");
-			generalUIText.text="level completed";
+			messageUIText.text="level completed";
 		}
 		else{
 			GameMessage.DisplayMessage("level failed");
-			generalUIText.text="level failed";
+			messageUIText.text="level failed";
 		}
 		
 		EnableGeneralMenu(winLostFlag);
@@ -175,6 +185,30 @@ public class UIiOS : MonoBehaviour {
 		
 		generalRect=new Rect(Screen.width/2-70, Screen.height/2-75, 140, 150);
 	}
+	
+	
+	void DisablePauseMenu(){		
+		generalBox.enabled=false;
+		menuButton.buttonObj.enabled=false;
+		restartButton.buttonObj.enabled=false;
+		//nextLvlButton.buttonObj.enabled=false;
+		
+		generalRect=new Rect(0, 0, 0, 0);
+	}
+	
+	void EnablePauseMenu(){
+		generalBox.enabled=true;
+		menuButton.buttonObj.enabled=true;
+		menuButton.callBackFunc=this.OnMenuButton;
+		StartCoroutine(menuButton.Update());
+		
+		restartButton.buttonObj.enabled=true;
+		restartButton.callBackFunc=this.OnRestartButton;
+		StartCoroutine(restartButton.Update());
+		
+		generalRect=new Rect(Screen.width/2-70, Screen.height/2-75, 140, 150);
+	}
+	
 	
 	void OnMenuButton(int ID){
 		if(mainMenu!="") Application.LoadLevel(mainMenu);
@@ -257,7 +291,7 @@ public class UIiOS : MonoBehaviour {
 //		}
 		
 		
-		if(Input.GetMouseButtonDown(0) && !IsCursorOnUI(Input.mousePosition) && GameControl.gameState!=_GameState.Ended){
+		if(Input.GetMouseButtonDown(0) && !IsCursorOnUI(Input.mousePosition) && GameControl.gameState!=_GameState.Ended && !paused){
 			
 			UnitTower tower=GameControl.Select(Input.mousePosition);
 			
@@ -538,12 +572,51 @@ public class UIiOS : MonoBehaviour {
 		
 		if(BuildManager.BuildTowerPointNBuild(tower)){
 			DisableBuildMenu();
+			BuildManager.ClearSampleTower();
 		}
+	}
+	
+	void OnShowSampleTower(int ID, bool flag){
+		if(flag) BuildManager.ShowSampleTower(ID); 
+		else BuildManager.ClearSampleTower();
 	}
 	
 	void OnFastForwardButton(int ID){
 		if(Time.timeScale==1) Time.timeScale=fastForwardSpeed;
 		else Time.timeScale=1;
+	}
+	
+	private bool paused=false;
+	void OnPauseButton(int ID){
+		TogglePaused();
+	}
+	
+	void TogglePaused(){
+		paused=!paused;
+		if(paused){
+			Time.timeScale=0;
+			messageUIText.text="Game Paused";
+			spawnButton.buttonObj.enabled=false;
+			ffButton.buttonObj.enabled=false;
+			
+			if(currentSelectedTower!=null){
+				OnUnselectTower();
+			}
+			if(buildMenu){
+				BuildManager.ClearIndicator();
+				DisableBuildMenu();
+			}
+			
+			EnablePauseMenu();
+		}
+		else{
+			Time.timeScale=1;
+			messageUIText.text="";
+			spawnButton.buttonObj.enabled=true;
+			ffButton.buttonObj.enabled=true;
+			
+			DisablePauseMenu();
+		}
 	}
 	
 	private GUIButton[] buildButtonList=new GUIButton[0];
@@ -617,6 +690,7 @@ public class UIiOS : MonoBehaviour {
 		buildListRect=new Rect(0, 0, 0, 0);
 		
 		buildMenu=false;
+		
 	}
 	
 	void GenerateButton(){
@@ -627,7 +701,7 @@ public class UIiOS : MonoBehaviour {
 		for(int i=0; i<towerList.Length; i++){
 			UnitTower tower=towerList[i];
 			
-			buildButtonList[i]=new GUIButton(tower.icon, null, OnBuildButton, i);
+			buildButtonList[i]=new GUIButton(tower.icon, null, OnBuildButton, OnShowSampleTower, i);
 			
 			buildButtonList[i].buttonObj.pixelInset=new Rect(0, 0, buildButtonSize, buildButtonSize);
 			

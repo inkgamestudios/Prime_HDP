@@ -60,6 +60,8 @@ public class ShootObjectEditor : Editor {
 		
 		if(!init) Init();
 		
+		GUI.changed = false;
+		
 		//shootObj.type
 		
 		//shootObj.type= EditorGUILayout.EnumPopup("Type: ", shootObj.type);
@@ -132,5 +134,6 @@ public class ShootObjectEditor : Editor {
 			EditorGUILayout.Space();
 		}
 		
+		if(GUI.changed) EditorUtility.SetDirty(shootObj);
 	}
 }

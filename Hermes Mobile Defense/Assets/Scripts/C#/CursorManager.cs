@@ -11,7 +11,7 @@ public class CursorManager : MonoBehaviour {
 	public Texture friendly;
 	private Texture currentTexture;
 	
-	#if !Unity_IPhone && !Unity_Android
+	#if !Unity_IPhone || !Unity_Android
 	
 	// Use this for initialization
 	void Start () {
@@ -22,6 +22,10 @@ public class CursorManager : MonoBehaviour {
 		Screen.showCursor=false;
 		
 		currentTexture=pointer;
+	}
+	
+	void OnDisable(){
+		Screen.showCursor=true;
 	}
 	
 	// Update is called once per frame

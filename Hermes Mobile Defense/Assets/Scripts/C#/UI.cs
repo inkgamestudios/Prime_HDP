@@ -10,6 +10,8 @@ public class UI : MonoBehaviour {
 	public enum _BuildMode{PointNBuild, DragNDrop}
 	public _BuildMode buildMode;
 	
+	public bool showBuildSample=true;
+	
 	public int fastForwardSpeed=3;
 	
 	public bool alwaysEnableNextButton=true;
@@ -28,19 +30,16 @@ public class UI : MonoBehaviour {
 	//indicate if the player have won or lost the game
 	private bool winLostFlag=false;
 	
+	private bool paused=false;
 	
 	// Use this for initialization
 	void Start () {		
 		
 		topPanelRect=new Rect(-3, -3, Screen.width+6, 28);
-		UIRect.AddRect(topPanelRect);
+		//UIRect.AddRect(topPanelRect);
 		
 		bottomPanelRect=new Rect(-3, Screen.height-25, Screen.width+6, 28);
-		UIRect.AddRect(bottomPanelRect);
-		
-		float x=Screen.width-260;
-		float y=Screen.height-355-bottomPanelRect.height;
-		towerUIRect=new Rect(x, y, 250, 350);
+		//UIRect.AddRect(bottomPanelRect);
 		
 		
 		if(buildMode==_BuildMode.DragNDrop){
@@ -48,16 +47,18 @@ public class UI : MonoBehaviour {
 			int width=50;
 			int height=50;
 			
-			x=0;
-			y=Screen.height-height-6-(int)bottomPanelRect.height;
+			int x=0;
+			int y=Screen.height-height-6-(int)bottomPanelRect.height;
 			int menuLength=(fullTowerList.Length)*(width+3);
 			
 			buildListRect=new Rect(x, y, menuLength+3, height+6);
-			UIRect.AddRect(buildListRect);
+			//UIRect.AddRect(buildListRect);
 			
 			//UnitTower[] towerList=BuildManager.GetTowerList();
 		}
 		
+		
+		if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.InitiateSampleTower();
 	}
 	
 	
@@ -85,6 +86,25 @@ public class UI : MonoBehaviour {
 		enableSpawnButton=flag;
 	}
 	
+	void TogglePause(){
+		paused=!paused;
+		if(paused){
+			Time.timeScale=0;
+			
+			if(currentSelectedTower!=null){
+				GameControl.ClearSelection();
+				currentSelectedTower=null;
+			}
+			if(buildMenu){
+				buildMenu=false;
+				BuildManager.ClearBuildPoint();
+			}
+		}
+		else Time.timeScale=1;
+		
+		
+	}
+	
 	// Update is called once per frame
 	void Update () {
 		#if !UNITY_IPHONE && !UNITY_ANDROID
@@ -93,19 +113,18 @@ public class UI : MonoBehaviour {
 				BuildManager.SetIndicator(Input.mousePosition);
 		#endif
 		
-		if(Input.GetMouseButtonDown(0) && !IsCursorOnUI(Input.mousePosition)){
-		//~ if(Input.GetMouseButtonDown(0) && !UIRect.IsCursorOnUI(Input.mousePosition)){
+		if(Input.GetMouseButtonDown(0) && !IsCursorOnUI(Input.mousePosition) && !paused){
+		//if(Input.GetMouseButtonDown(0) && !UIRect.IsCursorOnUI(Input.mousePosition)){
 			
 			UnitTower tower=GameControl.Select(Input.mousePosition);
 			
 			if(tower!=null){
 				currentSelectedTower=tower;
-				UIRect.AddRect(towerUIRect);
 				
 				if(buildMenu){
 					buildMenu=false;
 					BuildManager.ClearBuildPoint();
-					UIRect.RemoveRect(buildListRect);
+					//UIRect.RemoveRect(buildListRect);
 				}
 			}
 			else{
@@ -113,7 +132,7 @@ public class UI : MonoBehaviour {
 				if(currentSelectedTower!=null){
 					GameControl.ClearSelection();
 					currentSelectedTower=null;
-					UIRect.RemoveRect(towerUIRect);
+					//UIRect.RemoveRect(towerUIRect);
 				}
 
 				if(buildMode==_BuildMode.PointNBuild){
@@ -123,7 +142,10 @@ public class UI : MonoBehaviour {
 						InitBuildListRect();
 						buildMenu=true;
 					}
-					else buildMenu=false;
+					else{
+						buildMenu=false;
+						BuildManager.ClearBuildPoint();
+					}
 					
 				}
 			}
@@ -133,7 +155,7 @@ public class UI : MonoBehaviour {
 			if(buildMenu){
 				buildMenu=false;
 				BuildManager.ClearBuildPoint();
-				UIRect.RemoveRect(buildListRect);
+				//UIRect.RemoveRect(buildListRect);
 			}
 			//GameControl.ClearSelection();
 			//currentSelectedTower=null;
@@ -141,7 +163,13 @@ public class UI : MonoBehaviour {
 				CheckForTarget();
 			}
 		}
+		
+		if(Input.GetKeyDown(KeyCode.Escape)){
+			TogglePause();
+		}
 	}
+	
+	
 	
 	void CheckForTarget(){
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -204,7 +232,7 @@ public class UI : MonoBehaviour {
 				
 				//calculate the buildlist rect
 				buildListRect=new Rect(x, y, menuLength+3, height+6);
-				UIRect.AddRect(buildListRect);
+				//UIRect.AddRect(buildListRect);
 			}
 			else if(buildMenuType==_BuildMenuType.Box){
 				
@@ -214,7 +242,7 @@ public class UI : MonoBehaviour {
 			}
 		}
 		else if(buildMode==_BuildMode.DragNDrop){
-			UIRect.AddRect(buildListRect);
+			//UIRect.AddRect(buildListRect);
 		}
 	}
 	
@@ -245,26 +273,29 @@ public class UI : MonoBehaviour {
 		
 			int buttonX=8;
 		
-			if(enableSpawnButton){
-				if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Spawn")){
-					if(GameControl.gameState!=_GameState.Ended){
-						if(SpawnManager.Spawn())
-							enableSpawnButton=false;
+			if(!paused){
+				if(enableSpawnButton){
+					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Spawn")){
+						if(GameControl.gameState!=_GameState.Ended){
+							if(SpawnManager.Spawn())
+								enableSpawnButton=false;
+						}
+					}
+					buttonX+=65;
+				}
+				
+				if(Time.timeScale==1){
+					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex"+fastForwardSpeed.ToString())){
+						Time.timeScale=fastForwardSpeed;
 					}
 				}
-				buttonX+=65;
-			}
-			
-			if(Time.timeScale==1){
-				if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex"+fastForwardSpeed.ToString())){
-					Time.timeScale=fastForwardSpeed;
+				else{
+					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex1")){
+						Time.timeScale=1;
+					}
 				}
 			}
-			else{
-				if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex1")){
-					Time.timeScale=1;
-				}
-			}
+			else buttonX+=65;
 			buttonX+=130;
 		
 			GUI.Label(new Rect(200, 5, 100, 30), "Life: "+GameControl.GetPlayerLife());
@@ -272,7 +303,8 @@ public class UI : MonoBehaviour {
 			
 		
 			if(GUI.Button(new Rect(topPanelRect.width-30, 5, 25, 20), "II")) {
-				Debug.Log("Pause");
+				//Debug.Log("Pause");
+				TogglePause();
 			}
 		GUI.EndGroup ();
 			
@@ -335,6 +367,10 @@ public class UI : MonoBehaviour {
 			if(GUI.tooltip!=""){
 				int ID=int.Parse(GUI.tooltip);
 				ShowToolTip(ID);
+				if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.ShowSampleTower(ID); 
+			}
+			else{
+				if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.ClearSampleTower();
 			}
 			
 			//selected tower information UI
@@ -342,6 +378,26 @@ public class UI : MonoBehaviour {
 				SelectedTowerUI();
 			}
 			//else towerUIRect=new Rect(0, 0, 0, 0);
+			
+			if(paused){
+				float startX=Screen.width/2-100;
+				float startY=Screen.height*0.35f;
+				
+				for(int i=0; i<4; i++) GUI.Box(new Rect(startX, startY, 200, 150), "Game Paused");
+				
+				startX+=50;
+				
+				if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Resume Game")){
+					TogglePause();
+				}
+				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
+					Application.LoadLevel(Application.loadedLevelName);
+				}
+				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
+					if(mainMenu!="") Application.LoadLevel(mainMenu);
+				}
+			}
+			
 		}
 		//gameOver
 		else{
@@ -349,35 +405,31 @@ public class UI : MonoBehaviour {
 			float startX=Screen.width/2-100;
 			float startY=Screen.height*0.35f;
 			
+			string levelCompleteString="Level Complete";
+			if(!winLostFlag) levelCompleteString="Level Lost";
+		
+			for(int i=0; i<4; i++) GUI.Box(new Rect(startX, startY, 200, 150), levelCompleteString);
 			
-				//Debug.Log("Player has won");
-				//GameMessage.DisplayMessage("Level complete");
-				
-				string levelCompleteString="Level Complete";
-				if(!winLostFlag) levelCompleteString="Level Lost";
+			startX+=50;
 			
-				for(int i=0; i<3; i++) GUI.Box(new Rect(startX, startY, 200, 150), levelCompleteString);
-				
-				startX+=50;
-				
-				if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Restart Level")){
-					Application.LoadLevel(Application.loadedLevelName);
+			if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Restart Level")){
+				Application.LoadLevel(Application.loadedLevelName);
+			}
+			if(alwaysEnableNextButton || winLostFlag){
+				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
+					if(nextLevel!="") Application.LoadLevel(nextLevel);
 				}
-				if(alwaysEnableNextButton || winLostFlag){
-					if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
-						if(nextLevel!="") Application.LoadLevel(nextLevel);
-					}
-				}
-				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
-					if(mainMenu!="") Application.LoadLevel(mainMenu);
-				}
-				
-			
+			}
+			if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
+				if(mainMenu!="") Application.LoadLevel(mainMenu);
+			}
+		
 		}
 	}
 	
 	//show tooptip when a build button is hovered
 	void ShowToolTip(int ID){
+		
 		UnitTower[] towerList=BuildManager.GetTowerList();
 		
 		UnitTower tower=towerList[ID];
@@ -644,11 +696,16 @@ public class UI : MonoBehaviour {
 	
 	void SelectedTowerUI(){
 		
-		//~ for(int i=0; i<3; i++) GUI.Box(new Rect(startX, startY, widthBox, heightBox), "");
+		float startX=Screen.width-260;
+		float startY=Screen.height-355-bottomPanelRect.height;
+		float widthBox=250;
+		float heightBox=350;
+		
+		towerUIRect=new Rect(startX, startY, widthBox, heightBox);
 		for(int i=0; i<3; i++) GUI.Box(towerUIRect, "");
 		
-		float startX=Screen.width-260+20;
-		float startY=Screen.height-355-bottomPanelRect.height+20;
+		startX=Screen.width-260+20;
+		startY=Screen.height-355-bottomPanelRect.height+20;
 		
 		float width=250-40;
 		float height=20;
@@ -742,11 +799,8 @@ public class UI : MonoBehaviour {
 				upgradable=true;
 			}
 			
-			startY+=contentHeight;
 			
-			//startY=Screen.height-370-55;
-			startY+=Screen.height-370-40-contentHeight;
-			//startY+=contentHeight;
+			startY=Screen.height-50-bottomPanelRect.height;
 			
 			if(upgradable){
 				//int[] cost=currentSelectedTower.GetCost();
@@ -818,6 +872,7 @@ public class UI : MonoBehaviour {
 	//store the tower that can be build in an array of number that reference to the towerlist
 	//this is so these dont need to be calculated in every frame in OnGUI()
 	void UpdateBuildList(){
+		
 		//get the current buildinfo in buildmanager
 		BuildableInfo currentBuildInfo=BuildManager.GetBuildInfo();
 		
@@ -834,15 +889,26 @@ public class UI : MonoBehaviour {
 		for(int i=0; i<towerList.Length; i++){
 			UnitTower tower=towerList[i];
 				
-			//check if this type of tower can be build on this platform
-			foreach(_TowerType type in currentBuildInfo.buildableType){
-				if(tower.type==type){
-					tempBuildList[count]=i;
-					count+=1;
-					break;
+			if(currentBuildInfo.specialBuildableID!=null && currentBuildInfo.specialBuildableID.Length>0){
+				foreach(int specialBuildableID in currentBuildInfo.specialBuildableID){
+					if(specialBuildableID==tower.specialID){
+						count+=1;
+						break;
+					}
 				}
 			}
-
+			else{
+				if(tower.specialID<0){
+					//check if this type of tower can be build on this platform
+					foreach(_TowerType type in currentBuildInfo.buildableType){
+						if(tower.type==type && tower.specialID<0){
+							tempBuildList[count]=i;
+							count+=1;
+							break;
+						}
+					}
+				}
+			}
 		}
 		
 		//for as long as the number that can be build, copy from the temp buildList to the real buildList

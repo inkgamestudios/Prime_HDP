@@ -91,6 +91,8 @@ public class TowerEditor : EditorWindow {
 	
     void OnGUI () {
 		
+		GUI.changed = false;
+		
 		startX=3;
 		startY=3;
 		height=18;
@@ -225,7 +227,7 @@ public class TowerEditor : EditorWindow {
 			startY+=10;
 			
 			if(indicatorFlags[0]){
-				GUI.Box(new Rect(startX, startY+spaceY-1, 175, 400+(rscCount*20)), "");
+				GUI.Box(new Rect(startX, startY+spaceY-1, 175, 445+(rscCount*20)), "");
 				startX+=3;
 				
 				EditorGUI.LabelField(new Rect(50+startX, startY+=spaceY, 200, height), "Level 1: ");
@@ -286,7 +288,7 @@ public class TowerEditor : EditorWindow {
 					startY+=10;
 					
 					if(indicatorFlags[i+1]){
-						GUI.Box(new Rect(startX, startY+spaceY-1, 175, 400+(rscCount*20)), "");
+						GUI.Box(new Rect(startX, startY+spaceY-1, 175, 445+(rscCount*20)), "");
 						startX+=3;
 						
 						EditorGUI.LabelField(new Rect(50+startX, startY+=spaceY, 200, height), "Level "+(i+2).ToString()+": ");
@@ -348,6 +350,7 @@ public class TowerEditor : EditorWindow {
 			
 		}
 	
+		if(GUI.changed) EditorUtility.SetDirty(towerList[index]);
     }
 	
 	void TypeDependentBaseStat(int index){
@@ -358,6 +361,12 @@ public class TowerEditor : EditorWindow {
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
 			towerList[index].baseStat.cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.cooldown);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ReloadDuration: ");
+			towerList[index].baseStat.reloadDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.reloadDuration);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ClipSize: ");
+			towerList[index].baseStat.clipSize = EditorGUI.IntField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.clipSize);
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
 			towerList[index].baseStat.range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.range);
@@ -399,12 +408,59 @@ public class TowerEditor : EditorWindow {
 			//startY+=5;
 			
 		}
-		else if(towerType==1 || towerType==2){
+		else if(towerType==1){
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY+5, 200, height), "Damage: ");
 			towerList[index].baseStat.damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY+5, 50, height-2), towerList[index].baseStat.damage);
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
 			towerList[index].baseStat.cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.cooldown);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
+			towerList[index].baseStat.range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.range);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "StunDuration: ");
+			towerList[index].baseStat.stunDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.stunDuration);
+			
+			
+			EditorGUI.LabelField(new Rect(startX, startY+=spaceY+3, 200, height), "Slow Effect: ");
+			spaceY-=3;
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Duration: ");
+			towerList[index].baseStat.slow.duration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.slow.duration);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- SlowFactor: ");
+			towerList[index].baseStat.slow.slowFactor = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.slow.slowFactor);
+			
+			spaceY+=3;
+			
+			EditorGUI.LabelField(new Rect(startX, startY+=spaceY+3, 200, height), "DamageOverTime: ");
+			spaceY-=3;
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Damage: ");
+			towerList[index].baseStat.dot.damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.dot.damage);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Duration: ");
+			towerList[index].baseStat.dot.duration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.dot.duration);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Interval: ");
+			towerList[index].baseStat.dot.interval = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.dot.interval);
+			
+			float ttDmg=towerList[index].baseStat.dot.damage*towerList[index].baseStat.dot.duration/towerList[index].baseStat.dot.interval;
+			EditorGUI.LabelField(new Rect(startX+10, startY+=spaceY+3, 160, height), "TotalDamage:  "+ttDmg.ToString("f1"));
+			
+		}
+		else if(towerType==2){
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY+5, 200, height), "Damage: ");
+			towerList[index].baseStat.damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY+5, 50, height-2), towerList[index].baseStat.damage);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
+			towerList[index].baseStat.cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.cooldown);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ReloadDuration: ");
+			towerList[index].baseStat.reloadDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.reloadDuration);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ClipSize: ");
+			towerList[index].baseStat.clipSize = EditorGUI.IntField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.clipSize);
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
 			towerList[index].baseStat.range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].baseStat.range);
@@ -559,6 +615,12 @@ public class TowerEditor : EditorWindow {
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
 			towerList[index].upgradeStat[lvl].cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].cooldown);
 			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ReloadDuration: ");
+			towerList[index].upgradeStat[lvl].reloadDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].reloadDuration);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ClipSize: ");
+			towerList[index].upgradeStat[lvl].clipSize = EditorGUI.IntField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].clipSize);
+			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
 			towerList[index].upgradeStat[lvl].range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].range);
 			
@@ -599,13 +661,60 @@ public class TowerEditor : EditorWindow {
 			//startY+=5;
 			
 		}
-		else if(towerType==1 || towerType==2){
+		else if(towerType==1){
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY+5, 200, height), "Damage: ");
 			towerList[index].upgradeStat[lvl].damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY+5, 50, height-2), towerList[index].upgradeStat[lvl].damage);
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
 			towerList[index].upgradeStat[lvl].cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].cooldown);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
+			towerList[index].upgradeStat[lvl].range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].range);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "StunDuration: ");
+			towerList[index].upgradeStat[lvl].stunDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].stunDuration);
+			
+			
+			EditorGUI.LabelField(new Rect(startX, startY+=spaceY+3, 200, height), "Slow Effect: ");
+			spaceY-=3;
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Duration: ");
+			towerList[index].upgradeStat[lvl].slow.duration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].slow.duration);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- SlowFactor: ");
+			towerList[index].upgradeStat[lvl].slow.slowFactor = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].slow.slowFactor);
+			
+			spaceY+=3;
+			
+			EditorGUI.LabelField(new Rect(startX, startY+=spaceY+3, 200, height), "DamageOverTime: ");
+			spaceY-=3;
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Damage: ");
+			towerList[index].upgradeStat[lvl].dot.damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].dot.damage);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Duration: ");
+			towerList[index].upgradeStat[lvl].dot.duration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].dot.duration);
+			
+			EditorGUI.LabelField(new Rect(startX+10, startY+spaceY, 200, height), "- Interval: ");
+			towerList[index].upgradeStat[lvl].dot.interval = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].dot.interval);
+			
+			float ttDmg=towerList[index].baseStat.dot.damage*towerList[index].baseStat.dot.duration/towerList[index].baseStat.dot.interval;
+			EditorGUI.LabelField(new Rect(startX+10, startY+=spaceY+3, 160, height), "TotalDamage:  "+ttDmg.ToString("f1"));
+		}
+		else if(towerType==2){
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY+5, 200, height), "Damage: ");
+			towerList[index].upgradeStat[lvl].damage = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY+5, 50, height-2), towerList[index].upgradeStat[lvl].damage);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Cooldown: ");
+			towerList[index].upgradeStat[lvl].cooldown = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].cooldown);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ReloadDuration: ");
+			towerList[index].upgradeStat[lvl].reloadDuration = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].reloadDuration);
+			
+			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "ClipSize: ");
+			towerList[index].upgradeStat[lvl].clipSize = EditorGUI.IntField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].clipSize);
 			
 			EditorGUI.LabelField(new Rect(startX, startY+spaceY, 200, height), "Range: ");
 			towerList[index].upgradeStat[lvl].range = EditorGUI.FloatField(new Rect(startX+lW, startY+=spaceY, 50, height-2), towerList[index].upgradeStat[lvl].range);
