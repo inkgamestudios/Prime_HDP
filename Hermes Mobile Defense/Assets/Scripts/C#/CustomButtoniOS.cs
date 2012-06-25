@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 public delegate void ButtonPressedCallBack(int ID);
+public delegate void ToolTipCallBack(int ID, bool flag);
 
 [System.Serializable]
 public class GUIToggleButton : GUIButton{
@@ -9,17 +10,19 @@ public class GUIToggleButton : GUIButton{
 	//private bool state=false;
 	
 	public GUIToggleButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func)
-	:base(unpressed, pressed, func, 0){
-	
-	}
+	:base(unpressed, pressed, func, 0){	}
 	
 	public GUIToggleButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, int id)
-	:base(unpressed, pressed, func, id){
-		
-	}
+	:base(unpressed, pressed, func, id){	}
+	
+	//public GUIToggleButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, ToolTipCallBack ttfunc)
+	//:base(unpressed, pressed, func, ttfunc, 0){	}
+	
+	//public GUIToggleButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, ToolTipCallBack ttfunc, int id)
+	//:base(unpressed, pressed, func, ttfunc, id){	}
     
 	private void SwapState(){
-		if(buttonObj.HitTest(Input.mousePosition) && buttonObj.enabled){
+		//~ if(buttonObj.HitTest(Input.mousePosition) && buttonObj.enabled){
 			if(isPressed){
 				//state=false;
 				Unpressed();
@@ -30,21 +33,37 @@ public class GUIToggleButton : GUIButton{
 				Pressed();
 				if(callBackFunc!=null) callBackFunc(ID);
 			}
-		}
+		//~ }
 	}
 	
 	public override IEnumerator Update(){
+		
+		bool hover=false;
+		
 		while(true){
 			if(buttonObj.enabled){
 				
-				if(triggerOnPressed){
-					if(Input.GetMouseButtonDown(0)){
-						SwapState();
+				bool hoverTemp=buttonObj.HitTest(Input.mousePosition) && buttonObj.enabled;
+				
+				if(hover!=hoverTemp){
+					hover=hoverTemp;
+					if(!hover){
+						//if(toolTipFunc!=null) toolTipFunc(ID, false);
 					}
 				}
-				else{
-					if(Input.GetMouseButtonUp(0)){
-						SwapState();
+				
+				if(hover){ 
+					//if(toolTipFunc!=null) toolTipFunc(ID, true);
+					
+					if(triggerOnPressed){
+						if(Input.GetMouseButtonDown(0)){
+							if(hover) SwapState();
+						}
+					}
+					else{
+						if(Input.GetMouseButtonUp(0)){
+							if(hover) SwapState();
+						}
 					}
 				}
 				
@@ -60,6 +79,8 @@ public class GUIContinousButton : GUIButton{
 	public GUIContinousButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, int id)
 	:base(unpressed, pressed, func, id){}
     
+	//public GUIContinousButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, ToolTipCallBack ttfunc, int id)
+	//:base(unpressed, pressed, func, ttfunc, id){}
 	
 	public override IEnumerator Update(){
 		
@@ -70,10 +91,12 @@ public class GUIContinousButton : GUIButton{
 					
 					if(!buttonObj.HitTest(Input.mousePosition)){
 						if(isPressed) Unpressed();
+						//if(toolTipFunc!=null) toolTipFunc(ID, false);
 					}
 					else{
 						if(!isPressed) Pressed();
 						if(callBackFunc!=null) callBackFunc(ID);
+						//if(toolTipFunc!=null) toolTipFunc(ID, true);
 					}
 					
 				}
@@ -101,14 +124,18 @@ public class GUIButton {
 	[HideInInspector] public bool isPressed=false;
 	
 	public ButtonPressedCallBack callBackFunc;
+	public ToolTipCallBack toolTipFunc;
 	
-	public GUIButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, int id){
+	public GUIButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, int id):this(unpressed, pressed, func, null, id){}
+		
+	public GUIButton(Texture unpressed, Texture pressed, ButtonPressedCallBack func, ToolTipCallBack ttfunc, int id){
 		GameObject obj=new GameObject();
 		buttonObj=obj.AddComponent<GUITexture>();
 		
 		unpressedTex=unpressed;
 		pressedTex=pressed;
 		callBackFunc=func;
+		toolTipFunc=ttfunc;
 		ID=id;
 		
 		buttonObj.texture=unpressedTex;
@@ -169,7 +196,10 @@ public class GUIButton {
 					if(Input.GetMouseButton(0)){
 						
 						if(!buttonObj.HitTest(Input.mousePosition)){
-							if(isPressed) Unpressed();
+							if(isPressed){
+								Unpressed();
+								if(toolTipFunc!=null) toolTipFunc(ID, false);
+							}
 						}
 						else{
 							if(!isPressed) {
@@ -178,6 +208,8 @@ public class GUIButton {
 									if(callBackFunc!=null) callBackFunc(ID);
 								}
 							}
+							
+							if(toolTipFunc!=null) toolTipFunc(ID, true);
 						}
 						
 					}

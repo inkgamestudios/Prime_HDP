@@ -21,6 +21,9 @@ public class BuildManager : MonoBehaviour {
 	public static int PrePlaceTower(){
 		return towerCount+=1;
 	}
+	public static int GetTowerCount(){
+		return towerCount;
+	}
 	
 	void Awake(){
 		buildManager=this;
@@ -199,7 +202,6 @@ public class BuildManager : MonoBehaviour {
 	static public bool CheckBuildPoint(Vector3 pointer){
 		
 		//if(currentBuildInfo!=null) return false;
-		//currentBuildInfo=null;
 		
 		BuildableInfo buildableInfo=new BuildableInfo();
 		
@@ -269,6 +271,7 @@ public class BuildManager : MonoBehaviour {
 					}
 
 					buildableInfo.buildableType=buildManager.buildPlatforms[i].buildableType;
+					buildableInfo.specialBuildableID=buildManager.buildPlatforms[i].specialBuildableID;
 					
 					break;
 				}
@@ -289,11 +292,31 @@ public class BuildManager : MonoBehaviour {
 	
 	//similar to CheckBuildPoint but called by UnitTower in DragNDrop mode, check tower type before return
 	public static bool CheckBuildPoint(Vector3 pointer, _TowerType type){
+		return CheckBuildPoint(pointer, type, -1);
+	}
+	
+	public static bool CheckBuildPoint(Vector3 pointer, _TowerType type, int specialID){
 		if(!CheckBuildPoint(pointer)) return false;
 		
-		foreach(_TowerType buildabletype in currentBuildInfo.buildableType){
-			if(type==buildabletype){
-				return true;
+		if(specialID>0){
+			if(currentBuildInfo.specialBuildableID!=null && currentBuildInfo.specialBuildableID.Length>0){
+				foreach(int specialBuildableID in currentBuildInfo.specialBuildableID){
+					if(specialBuildableID==specialID){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		else{
+			if(currentBuildInfo.specialBuildableID!=null && currentBuildInfo.specialBuildableID.Length>0){
+				return false;
+			}
+			
+			foreach(_TowerType buildabletype in currentBuildInfo.buildableType){
+				if(type==buildabletype){
+					return true;
+				}
 			}
 		}
 		
@@ -310,7 +333,6 @@ public class BuildManager : MonoBehaviour {
 			GameMessage.DisplayMessage("Cant Build Tower before spawn start");
 			return false; 
 		}
-		
 		
 		if(GameControl.HaveSufficientResource(tower.GetCost())){
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -380,6 +402,45 @@ public class BuildManager : MonoBehaviour {
 	}
 	
 	
+	private UnitTower[] sampleTower;
+	private int currentSampleID=-1;
+	public static void InitiateSampleTower(){
+		buildManager.sampleTower=new UnitTower[buildManager.towers.Length];
+		for(int i=0; i<buildManager.towers.Length; i++){
+			GameObject towerObj=(GameObject)Instantiate(buildManager.towers[i].gameObject);
+			buildManager.sampleTower[i]=towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			UnitUtility.SetAdditiveMatColorRecursively(towerObj.transform, Color.green);
+		}
+	}
+	
+	static public void ShowSampleTower(int ID){
+		buildManager._ShowSampleTower(ID);
+	}
+	public void _ShowSampleTower(int ID){
+		if(currentSampleID==ID || currentBuildInfo==null) return;
+		
+		if(currentSampleID>0){
+			ClearSampleTower();
+		}
+		currentSampleID=ID;
+		sampleTower[ID].thisT.position=currentBuildInfo.position;
+		sampleTower[ID].thisObj.SetActiveRecursively(true);
+		GameControl.ShowIndicator(sampleTower[ID]);
+	}
+	
+	static public void ClearSampleTower(){
+		buildManager._ClearSampleTower();
+	}
+	public void _ClearSampleTower(){
+		if(currentSampleID<0) return;
+		
+		sampleTower[currentSampleID].thisObj.SetActiveRecursively(false);
+		GameControl.ClearIndicator();
+		currentSampleID=-1;
+	}
+	
+	
 	static public BuildableInfo GetBuildInfo(){
 		return currentBuildInfo;
 	}
@@ -413,6 +474,8 @@ public class BuildableInfo{
 	public Platform platform;
 	public _TowerType[] buildableType=null;
 	//public GameObject[] buildableTower=null;
+	
+	public int[] specialBuildableID;
 	
 	//cant build
 	public void BuildSpotInto(){}

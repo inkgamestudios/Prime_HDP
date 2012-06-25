@@ -20,6 +20,7 @@ public class UnitTower : Unit {
 	public delegate void DestroyHandler(UnitTower tower);
 	public static event DestroyHandler DestroyE;
 	
+	public int specialID=-1;
 	public _TowerType type=_TowerType.TurretTower;
 
 	public _TargetMode targetMode=_TargetMode.Hybrid;
@@ -33,7 +34,12 @@ public class UnitTower : Unit {
 	
 	public float GetDamage(){ return damage; }
 	public float GetRange(){ return range; }
+	public float GetMinRange(){ return minRange; }
 	public float GetCooldown(){ return cooldown; }
+	public float GetClipSize(){ return clipSize; }
+	public float GetReloadDuration(){ return reloadDuration; }
+	public float GetCurrentClip(){ return currentClip; }
+	public float GetLastReloadTime(){ return lastReloadTime; }
 	public float GetAoeRadius(){ return aoeRadius; }
 	public float GetStunDuration(){ return stunDuration; }
 	public Dot GetDot(){ return dot; }
@@ -46,7 +52,12 @@ public class UnitTower : Unit {
 	
 	private float damage=2;
 	private float range=8;
+	private float minRange=0;
 	private float cooldown=1;
+	private int clipSize=5;
+	private float reloadDuration=4;
+	private int currentClip=1;
+	private float lastReloadTime;
 	private float aoeRadius=1;
 	private float stunDuration=1;
 	private Dot dot;
@@ -70,10 +81,9 @@ public class UnitTower : Unit {
 	[HideInInspector] public bool immuneToSlow=false;
 
 	//to identity each tower built in a game
-	int towerID=-1;
-	public void SetTowerID(int ID){
-		towerID=ID;
-	}
+	private int towerID=-1;
+	public void SetTowerID(int ID){ towerID=ID; }
+	public int GetTowerID(){ return towerID; }
 	
 	//for stat editor purpose;
 	//[SerializeField] private int towerID=-1; 
@@ -222,6 +232,8 @@ public class UnitTower : Unit {
 		//disable the collider so it wont get in the way
 		thisObj.collider.enabled=false;
 		
+		//show range indicator
+		GameControl.DragNDropIndicator(this);
 		
 		//sure to check if the current visual state, red/green
 		bool buildEnable=false;
@@ -229,7 +241,7 @@ public class UnitTower : Unit {
 		Vector3 lastPos=Vector3.zero;
 		
 		while(true){
-			bool flag=BuildManager.CheckBuildPoint(Input.mousePosition, type);
+			bool flag=BuildManager.CheckBuildPoint(Input.mousePosition, type, specialID);
 			BuildableInfo currentBuildInfo=BuildManager.GetBuildInfo();
 			
 			
@@ -359,9 +371,17 @@ public class UnitTower : Unit {
 	}
 	
 	
+	IEnumerator Reload(){
+		lastReloadTime=Time.time;
+		yield return new WaitForSeconds(reloadDuration);
+		currentClip=clipSize;
+	}
+	
+	
+	
 	IEnumerator TurretRoutine(){
 		while(true){
-			if(built && target!=null && Vector3.Distance(thisT.position, target.thisT.position)<range && targetInLOS && !stunned){
+			if(built && target!=null && Vector3.Distance(thisT.position, target.thisT.position)<range && targetInLOS && !stunned && currentClip!=0){
 				
 				if(fireAnimationBody!=null && fireAnimation!=null){
 					fireAnimationBody.AddClip(fireAnimation, fireAnimation.name);
@@ -377,6 +397,9 @@ public class UnitTower : Unit {
 					shootObj.Shoot(target, this, sp);
 				}
 				
+				currentClip-=1;
+				if(currentClip==0) StartCoroutine(Reload());
+				
 				yield return new WaitForSeconds(Mathf.Max(0.05f, cooldown));
 			}
 			else{
@@ -387,7 +410,7 @@ public class UnitTower : Unit {
 	
 	IEnumerator DirectionalAOERoutine(){
 		while(true){
-			if(built && target!=null && Vector3.Distance(thisT.position, target.thisT.position)<range && targetInLOS && !stunned){
+			if(built && target!=null && Vector3.Distance(thisT.position, target.thisT.position)<range && targetInLOS && !stunned && currentClip!=0){
 				
 				Vector3 srcPos=thisT.position;
 				if(turretObject!=null) srcPos=turretObject.position;
@@ -418,6 +441,9 @@ public class UnitTower : Unit {
 				}
 				
 				if(shootSound!=null) AudioManager.PlaySound(shootSound, thisT.position);
+				
+				currentClip-=1;
+				if(currentClip==0) StartCoroutine(Reload());
 				
 				yield return new WaitForSeconds(Mathf.Max(0.05f, cooldown));
 			}
@@ -770,6 +796,10 @@ public class UnitTower : Unit {
 		if(type==_TowerType.TurretTower || type==_TowerType.DirectionalAOETower || type==_TowerType.AOETower || type==_TowerType.Mine){
 			damage=baseStat.damage;
 			range=baseStat.range;
+			clipSize=baseStat.clipSize;
+			currentClip=clipSize;
+			if(currentClip<=0) currentClip=-1;
+			reloadDuration=baseStat.reloadDuration;
 			aoeRadius=baseStat.aoeRadius;
 			stunDuration=baseStat.stunDuration;
 			slow=baseStat.slow;
@@ -871,7 +901,12 @@ public class UnitTower : Unit {
 		if(type==_TowerType.TurretTower || type==_TowerType.DirectionalAOETower || type==_TowerType.AOETower){
 			damage=upgradeStat[levelM].damage;
 			cooldown=upgradeStat[levelM].cooldown;
+			clipSize=upgradeStat[levelM].clipSize;
+			currentClip=clipSize;
+			if(currentClip<=0) currentClip=-1;
+			reloadDuration=upgradeStat[levelM].reloadDuration;
 			range=upgradeStat[levelM].range;
+			minRange=upgradeStat[levelM].minRange;
 			aoeRadius=upgradeStat[levelM].aoeRadius;
 			stunDuration=upgradeStat[levelM].stunDuration;
 			slow=upgradeStat[levelM].slow;
@@ -1062,7 +1097,6 @@ public class UnitTower : Unit {
 		for(int i=0; i<level-1; i++){
 			for(int j=0; j<towerValue.Length; j++){
 				towerValue[j]+=upgradeStat[i].costs[j];
-				
 			}
 		}
 		
@@ -1096,11 +1130,19 @@ public class UnitTower : Unit {
 	public void UpdateTowerUpgradeStat(int size){
 		TowerStat[] temp=upgradeStat;
 		
+		if(temp.Length==0){
+			temp=new TowerStat[1];
+			temp[0]=new TowerStat();
+			temp[0].slow=new Slow();
+			temp[0].dot=new Dot();
+			temp[0].buff=new BuffStat();
+		}
+		
 		upgradeStat=new TowerStat[size];
 		
 		for(int i=0; i<upgradeStat.Length; i++){
-			if(i>=temp.Length) break;
-			upgradeStat[i]=temp[i];
+			if(i>=temp.Length) upgradeStat[i]=temp[temp.Length-1];
+			else upgradeStat[i]=temp[i];
 		}
 	}
 	
@@ -1122,7 +1164,10 @@ public class TowerStat{
 	
 	public float damage=5;
 	public float cooldown=1;
+	public int clipSize=5;
+	public float reloadDuration=1;
 	public float range=10;
+	public float minRange=0;
 	public float aoeRadius=0;
 	public float stunDuration=0;
 	public Slow slow;

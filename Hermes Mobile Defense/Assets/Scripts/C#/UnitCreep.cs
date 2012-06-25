@@ -23,6 +23,7 @@ public class UnitCreep : Unit {
 	public AnimationClip[] animationHit;
 	public AnimationClip[] animationDead;
 	public AnimationClip[] animationScore;
+	public float moveAnimationModifier=1.0f;
 	
 	public AudioClip audioSpawn;
 	public AudioClip audioHit;
@@ -108,6 +109,7 @@ public class UnitCreep : Unit {
 		moveSpeed=moveSpd;
 	}
 	
+	
 	//init a unitCreep, give it a list of Vector3 point as the path it should follow
 	public void Init(List<Vector3> waypoints, int wID){
 		base.Init();
@@ -118,6 +120,12 @@ public class UnitCreep : Unit {
 		if(flying) thisT.position+=new Vector3(0, flightHeightOffset, 0);
 		
 		currentMoveSpd=moveSpeed;
+		
+		if(aniBody!=null && animationMove!=null && animationMove.Length>0){
+			foreach(AnimationClip clip in animationMove){
+				aniBody.animation[clip.name].speed=currentMoveSpd*moveAnimationModifier;
+			}
+		}
 		
 		float allowance=BuildManager.GetGridSize();
 		dynamicOffset=new Vector3(Random.Range(-allowance, allowance), 0, Random.Range(-allowance, allowance));
@@ -137,6 +145,12 @@ public class UnitCreep : Unit {
 		if(flying) thisT.position+=new Vector3(0, flightHeightOffset, 0);
 		
 		currentMoveSpd=moveSpeed;
+		
+		if(aniBody!=null && animationMove!=null && animationMove.Length>0){
+			foreach(AnimationClip clip in animationMove){
+				aniBody.animation[clip.name].speed=currentMoveSpd*moveAnimationModifier;
+			}
+		}
 		
 		//if using dynamic wap pos, set an offset based on gridsize
 		if(path.dynamicWP>0){
@@ -214,6 +228,50 @@ public class UnitCreep : Unit {
 	
 	public void Unstunned(){
 		PlayMove();
+	}
+	
+	private AnimationClip[] animationAttack;
+	private AnimationClip animationIdle;
+	
+	public void SetAttackAnimation(AnimationClip[] aniAttack){
+		animationAttack=aniAttack;
+		
+		if(aniBody!=null && animationAttack!=null && animationAttack.Length>0){
+			foreach(AnimationClip clip in animationHit){
+				aniBody.AddClip(clip, clip.name);
+				aniBody.animation[clip.name].layer=5;
+				aniBody.animation[clip.name].wrapMode=WrapMode.Once;
+			}
+		}
+	}
+	
+	public void SetIdleAnimation(AnimationClip aniIdle){
+		animationIdle=aniIdle;
+		if(aniBody!=null){
+			aniBody.AddClip(animationIdle, animationIdle.name);
+			aniBody.animation[animationIdle.name].layer=-1;
+			aniBody.animation[animationIdle.name].wrapMode=WrapMode.Loop;
+		}
+	}
+	
+	public void StopAnimation(){
+		if(aniBody!=null) aniBody.Stop();
+		
+		if(aniBody!=null && animationIdle!=null){
+			aniBody.Play(animationIdle.name);
+		}
+	}
+	
+	public void ResumeAnimation(){
+		PlayMove();
+	}
+	
+	public bool PlayAttack(){
+		if(aniBody!=null && animationAttack!=null && animationAttack.Length>0){
+			aniBody.CrossFade(animationAttack[Random.Range(0, animationAttack.Length-1)].name);
+			return true;
+		}
+		return false;
 	}
 	
 	public void PlayMove(){

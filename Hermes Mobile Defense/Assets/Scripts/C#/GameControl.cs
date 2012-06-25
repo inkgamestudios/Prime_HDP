@@ -178,19 +178,23 @@ public class GameControl : MonoBehaviour {
 		selectedTower=hit.transform.gameObject.GetComponent<UnitTower>();
 		//selectedTower.Select();
 		
-		gameControl.ShowIndicator(selectedTower);
+		gameControl._ShowIndicator(selectedTower);
 		
 		return selectedTower;
 	}
 	
-	public void ShowIndicator(UnitTower tower){
+	public static void ShowIndicator(UnitTower tower){
+		gameControl._ShowIndicator(tower);
+	}
+	
+	public void _ShowIndicator(UnitTower tower){
 		//show range indicator on the tower
 		//for support tower, show friendly range indicator
 		if(tower.type==_TowerType.SupportTower){
 			//Debug.Log(tower.type);
 			float range=tower.GetRange();
 			if(rangeIndicatorF!=null){
-				rangeIndicatorF.position=selectedTower.thisT.position;
+				rangeIndicatorF.position=tower.thisT.position;
 				rangeIndicatorF.localScale=new Vector3(2*range/10, 1, 2*range/10);
 				rangeIndicatorF.renderer.enabled=true;
 			}
@@ -200,7 +204,7 @@ public class GameControl : MonoBehaviour {
 		else if(tower.type!=_TowerType.ResourceTower){
 			float range=tower.GetRange();
 			if(rangeIndicatorH!=null){
-				rangeIndicatorH.position=selectedTower.thisT.position;
+				rangeIndicatorH.position=tower.thisT.position;
 				rangeIndicatorH.localScale=new Vector3(2*range/10, 1, 2*range/10);
 				rangeIndicatorH.renderer.enabled=true;
 			}
@@ -208,20 +212,44 @@ public class GameControl : MonoBehaviour {
 		}
 	}
 	
-	public void ClearIndicator(){
+	public static void DragNDropIndicator(UnitTower tower){
+		if(tower.type!=_TowerType.ResourceTower){
+			gameControl._ShowIndicator(tower);
+			gameControl.StartCoroutine(gameControl._DragNDropIndicator(tower));
+		}
+	}
+	IEnumerator _DragNDropIndicator(UnitTower tower){
+		while(tower.thisObj!=null && tower.GetTowerID()==-1){
+			if(tower.type==_TowerType.SupportTower){
+				if(rangeIndicatorF!=null) rangeIndicatorF.position=tower.thisT.position;
+			}
+			else{
+				if(rangeIndicatorH!=null) rangeIndicatorH.position=tower.thisT.position;
+			}
+				
+			yield return null;
+		}
+		ClearIndicator();
+	}
+	
+	public static void ClearIndicator(){
+		gameControl._ClearIndicator();
+	}
+	
+	public void _ClearIndicator(){
 		if(rangeIndicatorH!=null) rangeIndicatorH.renderer.enabled=false;
 		if(rangeIndicatorF!=null) rangeIndicatorF.renderer.enabled=false;
 	}
 	
 	static public void ClearSelection(){
 		selectedTower=null;
-		gameControl.ClearIndicator();
+		gameControl._ClearIndicator();
 	}
 	
 	//call when a tower complete upgrade, if tower is currently selected, update the range indicator
 	static public void TowerUpgradeComplete(UnitTower tower){
 		if(tower==selectedTower){
-			gameControl.ShowIndicator(tower);
+			gameControl._ShowIndicator(tower);
 		}
 	}
 	
