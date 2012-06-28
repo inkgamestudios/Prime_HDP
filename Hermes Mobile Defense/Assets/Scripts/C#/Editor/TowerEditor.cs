@@ -113,7 +113,7 @@ public class TowerEditor : EditorWindow {
 			
 			if(levelCap!=towerList[index].levelCap){
 				towerList[index].levelCap=levelCap;
-				towerList[index].UpdateTowerUpgradeStat(levelCap-1);
+				//towerList[index].UpdateTowerUpgradeStat(levelCap-1);
 			}
 			
 			//assign appropriate towerType index
