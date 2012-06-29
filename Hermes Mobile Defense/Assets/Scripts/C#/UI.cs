@@ -41,7 +41,7 @@ public class UI : MonoBehaviour {
 		bottomPanelRect=new Rect(-3, Screen.height-25, Screen.width+6, 28);
 		//UIRect.AddRect(bottomPanelRect);
 		
-		
+		//init ui rect for DragNDrop mode, this will be use throughout the entire game
 		if(buildMode==_BuildMode.DragNDrop){
 			UnitTower[] fullTowerList=BuildManager.GetTowerList();
 			int width=50;
@@ -52,12 +52,9 @@ public class UI : MonoBehaviour {
 			int menuLength=(fullTowerList.Length)*(width+3);
 			
 			buildListRect=new Rect(x, y, menuLength+3, height+6);
-			//UIRect.AddRect(buildListRect);
-			
-			//UnitTower[] towerList=BuildManager.GetTowerList();
 		}
 		
-		
+		//initiate sample menu, so player can preview the tower in pointNBuild buildphase
 		if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.InitiateSampleTower();
 	}
 	
@@ -86,6 +83,7 @@ public class UI : MonoBehaviour {
 		enableSpawnButton=flag;
 	}
 	
+	//call to enable/disable pause
 	void TogglePause(){
 		paused=!paused;
 		if(paused){
@@ -101,64 +99,73 @@ public class UI : MonoBehaviour {
 			}
 		}
 		else Time.timeScale=1;
-		
-		
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		#if !UNITY_IPHONE && !UNITY_ANDROID
-		//if(buildMode==_BuildMode.PointNBuild && !buildMenu)
 			if(buildMode==_BuildMode.PointNBuild)
 				BuildManager.SetIndicator(Input.mousePosition);
 		#endif
 		
 		if(Input.GetMouseButtonDown(0) && !IsCursorOnUI(Input.mousePosition) && !paused){
-		//if(Input.GetMouseButtonDown(0) && !UIRect.IsCursorOnUI(Input.mousePosition)){
 			
+			//check if user click on towers
 			UnitTower tower=GameControl.Select(Input.mousePosition);
 			
+			//if user click on tower, select the tower
 			if(tower!=null){
 				currentSelectedTower=tower;
 				
+				//if build mode is active, disable buildmode
 				if(buildMenu){
 					buildMenu=false;
 					BuildManager.ClearBuildPoint();
-					//UIRect.RemoveRect(buildListRect);
+					ClearBuildListRect();
 				}
 			}
+			//no tower is selected
 			else{
-				
+				//if a tower is selected previously, clear the selection
 				if(currentSelectedTower!=null){
 					GameControl.ClearSelection();
 					currentSelectedTower=null;
+					towerUIRect=new Rect(0, 0, 0, 0);
 					//UIRect.RemoveRect(towerUIRect);
 				}
-
+				
+				//if we are in PointNBuild Mode
 				if(buildMode==_BuildMode.PointNBuild){
 				
+					//check for build point, if true initiate build menu
 					if(BuildManager.CheckBuildPoint(Input.mousePosition)){
 						UpdateBuildList();
 						InitBuildListRect();
 						buildMenu=true;
 					}
+					//if there are no valid build point but we are in build mode, disable it
 					else{
-						buildMenu=false;
-						BuildManager.ClearBuildPoint();
+						if(buildMenu){
+							buildMenu=false;
+							BuildManager.ClearBuildPoint();
+							ClearBuildListRect();
+						}
 					}
 					
 				}
 			}
 			
 		}
+		//if right click, 
 		else if(Input.GetMouseButtonDown(1)){
+			//clear the menu
 			if(buildMenu){
 				buildMenu=false;
 				BuildManager.ClearBuildPoint();
-				//UIRect.RemoveRect(buildListRect);
+				ClearBuildListRect();
 			}
-			//GameControl.ClearSelection();
-			//currentSelectedTower=null;
+			
+			//if there are tower currently being selected
 			if(currentSelectedTower!=null){
 				CheckForTarget();
 			}
@@ -170,7 +177,7 @@ public class UI : MonoBehaviour {
 	}
 	
 	
-	
+	//check if user has click on creep, if yes and if current tower is eligible to attack it, set the assign it as tower target
 	void CheckForTarget(){
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		RaycastHit hit;
@@ -190,7 +197,7 @@ public class UI : MonoBehaviour {
 	private Rect towerUIRect;
 	private Rect[] scatteredRectList=new Rect[0];	//for piemenu
 	
-	
+	//check for all UI screen space, see if user cursor is within any of them
 	public bool IsCursorOnUI(Vector3 point){
 		Rect tempRect=new Rect(0, 0, 0, 0);
 		
@@ -219,6 +226,17 @@ public class UI : MonoBehaviour {
 		return false;
 	}
 	
+	//clear all ui space occupied by build menu
+	void ClearBuildListRect(){
+		if(buildMode==_BuildMode.PointNBuild){
+			if(buildMenuType==_BuildMenuType.Pie) scatteredRectList=new Rect[0];
+			else buildListRect=new Rect(0, 0, 0, 0);
+			
+			//UIRect.RemoveRect(buildListRect);
+		}
+	}
+	
+	//initiate ui space that will be occupied by build menu
 	void InitBuildListRect(){
 		if(buildMode==_BuildMode.PointNBuild){
 			if(buildMenuType==_BuildMenuType.Fixed){
@@ -235,14 +253,25 @@ public class UI : MonoBehaviour {
 				//UIRect.AddRect(buildListRect);
 			}
 			else if(buildMenuType==_BuildMenuType.Box){
-				
+				//since this is a floating menu, the actual location cannot be pre-calculated
+				//instead it will be calculated in every frame in OnGUI()
 			}
 			else if(buildMenuType==_BuildMenuType.Pie){
-				
+				//since this is a floating menu, the actual location cannot be pre-calculated
+				//instead it will be calculated in every frame in OnGUI()
 			}
 		}
+		//DragNDrop mode will always have build menu enable, so no need to calculate it
 		else if(buildMode==_BuildMode.DragNDrop){
-			//UIRect.AddRect(buildListRect);
+			//UnitTower[] fullTowerList=BuildManager.GetTowerList();
+			//~ int width=50;
+			//~ int height=50;
+			
+			//~ int x=0;
+			//~ int y=Screen.height-height-6-(int)bottomPanelRect.height;
+			//~ int menuLength=(currentBuildList.Length)*(width+3);
+			
+			//~ buildListRect=new Rect(x, y, menuLength+3, height+6);
 		}
 	}
 	
@@ -580,6 +609,7 @@ public class UI : MonoBehaviour {
 		if(GUI.Button(scatteredRectList[currentBuildList.Length], "X")){
 			buildMenu=false;
 			BuildManager.ClearBuildPoint();
+			ClearBuildListRect();
 		}
 
 	}
@@ -635,6 +665,7 @@ public class UI : MonoBehaviour {
 		if(GUI.Button(new Rect(x, y, width, height), "X")){
 			buildMenu=false;
 			BuildManager.ClearBuildPoint();
+			ClearBuildListRect();
 		}
 	}
 	
@@ -679,6 +710,7 @@ public class UI : MonoBehaviour {
 		if(GUI.Button(new Rect(x, y, width, height), "X")){
 			buildMenu=false;
 			BuildManager.ClearBuildPoint();
+			ClearBuildListRect();
 		}
 	}
 	

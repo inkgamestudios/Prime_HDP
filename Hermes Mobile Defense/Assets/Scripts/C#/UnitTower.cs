@@ -929,7 +929,11 @@ public class UnitTower : Unit {
 			if(turretObject.childCount>0) turretObject.gameObject.SetActiveRecursively(false);
 			else turretObject.gameObject.active=false;
 			
-			turretObject=upgradeStat[levelM].turretObject;
+			Transform turretTemp=(Transform)Instantiate(upgradeStat[levelM].turretObject);
+			turretTemp.position=turretObject.position;
+			turretTemp.rotation=turretObject.rotation;
+			turretObject=turretTemp;
+			//turretObject=upgradeStat[levelM].turretObject;
 			
 			UpdateShootPoint();
 		}
@@ -939,7 +943,12 @@ public class UnitTower : Unit {
 			if(baseObject.childCount>0) baseObject.gameObject.SetActiveRecursively(false);
 			else baseObject.gameObject.active=false;
 			
-			baseObject=upgradeStat[levelM].baseObject;
+			Transform baseTemp=(Transform)Instantiate(upgradeStat[levelM].baseObject);
+			baseTemp.position=baseObject.position;
+			baseTemp.rotation=baseObject.rotation;
+			baseObject=baseTemp;
+			
+			//baseObject=upgradeStat[levelM].baseObject;
 		}
 			
 		level+=1;
@@ -1141,7 +1150,7 @@ public class UnitTower : Unit {
 		upgradeStat=new TowerStat[size];
 		
 		for(int i=0; i<upgradeStat.Length; i++){
-			if(i>=temp.Length) upgradeStat[i]=temp[temp.Length-1];
+			if(i>=temp.Length) upgradeStat[i]=temp[temp.Length-1].Clone();
 			else upgradeStat[i]=temp[i];
 		}
 	}
@@ -1183,6 +1192,40 @@ public class TowerStat{
 	
 	public Transform turretObject;
 	public Transform baseObject;
+	
+	public TowerStat Clone(){
+		TowerStat clone=new TowerStat();
+		clone.cost=cost;
+		//clone.costs=costs;
+		
+		clone.costs=new int[costs.Length];
+		for(int i=0; i<costs.Length; i++){
+			clone.costs[i]=costs[i];
+		}
+		
+		clone.damage=damage;
+		clone.cooldown=cooldown;
+		clone.clipSize=clipSize;
+		clone.reloadDuration=reloadDuration;
+		clone.range=range;
+		clone.minRange=minRange;
+		clone.aoeRadius=aoeRadius;
+		clone.stunDuration=stunDuration;
+		clone.slow=slow.Clone();
+		clone.dot=dot.Clone();
+		clone.buff=buff.Clone();
+		//clone.incomes=incomes;
+		
+		clone.incomes=new int[incomes.Length];
+		for(int i=0; i<incomes.Length; i++){
+			clone.incomes[i]=incomes[i];
+		}
+		
+		clone.buildDuration=buildDuration;
+		
+		return clone;
+	}
+	
 }
 
 [System.Serializable]
@@ -1190,6 +1233,15 @@ public class Dot{
 	public float damage=1f;
 	public float duration=3;
 	public float interval=0.5f;
+	
+	public Dot Clone(){
+		Dot clone=new Dot();
+		clone.damage=damage;
+		clone.duration=duration;
+		clone.interval=interval;
+		
+		return clone;
+	}
 }
 
 [System.Serializable]
@@ -1204,6 +1256,15 @@ public class Slow{
 	public void SetTimeEnd(float val){
 		timeEnd=val;
 	}
+	
+	public Slow Clone(){
+		Slow clone=new Slow();
+		clone.slowFactor=slowFactor;
+		clone.duration=duration;
+		clone.timeEnd=timeEnd;
+		
+		return clone;
+	}
 }
 
 [System.Serializable]
@@ -1213,6 +1274,16 @@ public class BuffStat{
 	public float damageBuff=0.1f;
 	public float cooldownBuff=0.1f;
 	public float rangeBuff=0.1f;
+	
+	public BuffStat Clone(){
+		BuffStat clone=new BuffStat();
+		clone.buffID=buffID;
+		clone.damageBuff=damageBuff;
+		clone.cooldownBuff=cooldownBuff;
+		clone.rangeBuff=rangeBuff;
+		
+		return clone;
+	}
 }
 
 public class Buffed{
