@@ -72,54 +72,67 @@ public class LevelSelect : MonoBehaviour
 		Stage1Tab.onTouchUpInside += sender => SwitchFunction(1);
 		Stage2Tab.onTouchUpInside += sender => Debug.Log("stage 2 tab clicked");
 		Stage2Tab.onTouchUpInside += sender => SwitchFunction(2);
-		Stage3Tab.onTouchUpInside += sender => Debug.Log("stag1e 3 tab clicked");
+		Stage3Tab.onTouchUpInside += sender => Debug.Log("stage 3 tab clicked");
 		Stage3Tab.onTouchUpInside += sender => SwitchFunction(3);
 	}
 	
 	void Buttons()
 	{	
+		// creates a gameObject of the Save object to gain access to the scrip PlayerSave located in it
+		GameObject joe = GameObject.Find("Save");
+		
 		// Very First Level
 		Lvl0 = UIButton.create( "playUp.png", "playDown.png", 0, 0 );
 		Lvl0.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Lvl0.onTouchUpInside += sender => Application.LoadLevel ("Lvl0");
+		Lvl0.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 0 );
 		
 		//First Tier
 		Tier1LvlA = UIButton.create( "playUp.png", "playDown.png", 0, 0  );
 		Tier1LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier1LvlA.onTouchUpInside += sender => Application.LoadLevel ("Tier1LvlA");
+		Tier1LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 1 );
 		
 		Tier1LvlB = UIButton.create( "playUp.png", "playDown.png", 0, 0  );
 		Tier1LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier1LvlB.onTouchUpInside += sender => Application.LoadLevel ("Tier1LvlB");
+		Tier1LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 2 );
 		
 		Tier1LvlC = UIButton.create( "playUp.png", "playDown.png", 0, 0  );
 		Tier1LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier1LvlC.onTouchUpInside += sender => Application.LoadLevel ("Tier1LvlC");
+		Tier1LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 3 );
 		//Second Tier
 		Tier2LvlA = UIButton.create( "playUp.png", "playDown.png", 0, 0 );
 		Tier2LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier2LvlA.onTouchUpInside += sender => Application.LoadLevel ("Tier2LvlA");
+		Tier2LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 4 );
 		
 		Tier2LvlB = UIButton.create( "playUp.png", "playDown.png", 0, 0 );
 		Tier2LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier2LvlB.onTouchUpInside += sender => Application.LoadLevel ("Tier2LvlB");
+		Tier2LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 5 );
 		
 		//Third Tier
 		Tier3LvlA = UIButton.create( "playUp.png", "playDown.png", 0, 0 );
 		Tier3LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier3LvlA.onTouchUpInside += sender => Application.LoadLevel ("Tier3LvlA");
+		Tier3LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 6 );
 		
 		Tier3LvlB = UIButton.create( "playUp.png", "playDown.png", 0, 0  );
 		Tier3LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier3LvlB.onTouchUpInside += sender => Application.LoadLevel ("Tier3LvlB");
+		Tier3LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 7 );
 		
 		Tier3LvlC = UIButton.create( "playUp.png", "playDown.png", 0, 0  );
 		Tier3LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier3LvlC.onTouchUpInside += sender => Application.LoadLevel ("Tier3LvlC");
+		Tier3LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 8 );
 		//Fourth Tier
 		Tier4 = UIButton.create( "playUp.png", "playDown.png", 0, 0 );
 		Tier4.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Tier4.onTouchUpInside += sender => Application.LoadLevel ("Tier4");
+		Tier4.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 1, 9 );
 		
 		//Establishes vertical panels
 		vertPanel0 = UIVerticalPanel.create( "vertPanelTop.png", "vertPanelMiddle.png", "vertPanelBottom.png" );
@@ -164,42 +177,52 @@ public class LevelSelect : MonoBehaviour
 		S2Lvl0 = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Lvl0.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Lvl0.onTouchUpInside += sender => Application.LoadLevel ("S2Lvl0");
+		S2Lvl0.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 0 );
 		//First Tier
 		S2Tier1LvlA = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier1LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier1LvlA.onTouchUpInside += sender => Application.LoadLevel ("S2Tier1LvlA");
+		S2Tier1LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 1 );
 		
 		S2Tier1LvlB = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier1LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier1LvlB.onTouchUpInside += sender => Application.LoadLevel ("S2Tier1LvlB");
+		S2Tier1LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 2 );
 		
 		S2Tier1LvlC = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier1LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier1LvlC.onTouchUpInside += sender => Application.LoadLevel ("S2Tier1LvlC");
+		S2Tier1LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 3 );
 		//Second Tier
 		S2Tier2LvlA= UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier2LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier2LvlA.onTouchUpInside += sender => Application.LoadLevel ("S2Tier2LvlA");
+		S2Tier2LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 4 );
 		
 		S2Tier2LvlB = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier2LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier2LvlB.onTouchUpInside += sender => Application.LoadLevel ("S2Tier2LvlB");
+		S2Tier2LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 5 );
 		//Third Tier
 		S2Tier3LvlA = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier3LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier3LvlA.onTouchUpInside += sender => Application.LoadLevel ("S2Tier3LvlA");
+		S2Tier3LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 6 );
 		
 		S2Tier3LvlB = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier3LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier3LvlB.onTouchUpInside += sender => Application.LoadLevel ("S2Tier3LvlB");
+		S2Tier3LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 7 );
 		
 		S2Tier3LvlC = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier3LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier3LvlC.onTouchUpInside += sender => Application.LoadLevel ("S2Tier3LvlC");
+		S2Tier3LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 8 );
 		//Fourth Tier
 		S2Tier4 = UIButton.create( "scoresUp.png", "scoresDown.png", 0, 0 );
 		S2Tier4.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S2Tier4.onTouchUpInside += sender => Application.LoadLevel ("S2Tier4");
+		S2Tier4.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 2, 9 );
 		//Establishes vertical panels
 		vertPanel5 = UIVerticalPanel.create( "vertPanelTop.png", "vertPanelMiddle.png", "vertPanelBottom.png" );
 		vertPanel5.beginUpdates();
@@ -243,42 +266,52 @@ public class LevelSelect : MonoBehaviour
 		S3Lvl0 = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Lvl0.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Lvl0.onTouchUpInside += sender => Application.LoadLevel ("S3Lvl0");
+		S3Lvl0.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 0 );
 		//First Tier
 		S3Tier1LvlA = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier1LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier1LvlA.onTouchUpInside += sender => Application.LoadLevel ("S3Tier1LvlA");
+		S3Tier1LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 1 );
 		
 		S3Tier1LvlB = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier1LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier1LvlB.onTouchUpInside += sender => Application.LoadLevel ("S3Tier1LvlB");
+		S3Tier1LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 2 );
 		
 		S3Tier1LvlC = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier1LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier1LvlC.onTouchUpInside += sender => Application.LoadLevel ("S3Tier1LvlC");
+		S3Tier1LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 3 );
 		//Second Tier
 		S3Tier2LvlA = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier2LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier2LvlA.onTouchUpInside += sender => Application.LoadLevel ("S3Tier2LvlA");
+		S3Tier2LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 4 );
 		
 		S3Tier2LvlB = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier2LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier2LvlB.onTouchUpInside += sender => Application.LoadLevel ("S3Tier2LvlB");
+		S3Tier2LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 5 );
 		//Third Tier
 		S3Tier3LvlA = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier3LvlA.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier3LvlA.onTouchUpInside += sender => Application.LoadLevel ("S3Tier3LvlA");
+		S3Tier3LvlA.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 6 );
 		
 		S3Tier3LvlB = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier3LvlB.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier3LvlB.onTouchUpInside += sender => Application.LoadLevel ("S3Tier3LvlB");
+		S3Tier3LvlB.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 7 );
 		
 		S3Tier3LvlC = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier3LvlC.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier3LvlC.onTouchUpInside += sender => Application.LoadLevel ("S3Tier3LvlC");
+		S3Tier3LvlC.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 8 );
 		//Fourth Tier
 		S3Tier4 = UIButton.create( "optionsUp.png", "optionsDown.png", 0, 0 );
 		S3Tier4.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		S3Tier4.onTouchUpInside += sender => Application.LoadLevel ("S3Tier4");
+		S3Tier4.onTouchUpInside += sender => joe.GetComponent<PlayerSave>().SetStage( 3, 9 );
 		//Establishes vertical panels
 		vertPanel10 = UIVerticalPanel.create( "vertPanelTop.png", "vertPanelMiddle.png", "vertPanelBottom.png" );
 		vertPanel10.beginUpdates();
@@ -315,9 +348,11 @@ public class LevelSelect : MonoBehaviour
 		vertPanel14.addChild( S3Tier4 );
 		vertPanel14.endUpdates();
 		
+		// sets default value of arranging buttons
 		SwitchFunction( 1 );
 		
 	}
+	
 	void SwitchFunction ( int tabNumber)
 	{
 		switch( tabNumber )
@@ -330,7 +365,7 @@ public class LevelSelect : MonoBehaviour
 				vertPanel7.position = new Vector2( 2* Screen.width/5, 0 );
 				vertPanel8.position = new Vector2( 3* Screen.width/5, 0 );
 				vertPanel9.position = new Vector2( 4* Screen.width/5, 0 );
-				//repositioning other tabs
+				//repositioning other tabs out of view
 				vertPanel0.position = new Vector2( 0, Screen.height );
 				vertPanel1.position = new Vector2( 0, Screen.height );
 				vertPanel2.position = new Vector2( 0, Screen.height );
@@ -352,7 +387,7 @@ public class LevelSelect : MonoBehaviour
 				vertPanel12.position = new Vector2( 2* Screen.width/5, 0 );
 				vertPanel13.position = new Vector2( 3* Screen.width/5, 0 );
 				vertPanel14.position = new Vector2( 4* Screen.width/5, 0 );
-				//repositioning other tabs
+				//repositioning other tabs out of view
 				vertPanel0.position  = new Vector2( 0, Screen.height );
 				vertPanel1.position  = new Vector2( 0, Screen.height );
 				vertPanel2.position  = new Vector2( 0, Screen.height );
@@ -375,7 +410,7 @@ public class LevelSelect : MonoBehaviour
 				vertPanel2.position = new Vector2( 2* Screen.width/5, 0 );
 				vertPanel3.position = new Vector2( 3* Screen.width/5, 0 );
 				vertPanel4.position = new Vector2( 4* Screen.width/5, 0 );
-				//repositioning other tabs
+				//repositioning other tabs out of view
 				vertPanel5.position  = new Vector2( 0, Screen.height );
 				vertPanel6.position  = new Vector2( 0, Screen.height );
 				vertPanel7.position  = new Vector2( 0, Screen.height );

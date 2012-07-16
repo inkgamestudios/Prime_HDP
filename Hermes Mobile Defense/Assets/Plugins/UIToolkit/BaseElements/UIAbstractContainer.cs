@@ -222,7 +222,7 @@ public abstract class UIAbstractContainer : UIObject, IPositionable
 				var lastIndex = _children.Count;
 				foreach( var item in _children )
 				{
-					Debug.Log("HHHH");
+					//Debug.Log("HHHH");
 					// we add spacing for all but the first and last
 					if( i != 0 && i != lastIndex )
 						_contentHeight += _spacing;
