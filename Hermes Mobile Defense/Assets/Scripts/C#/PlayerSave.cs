@@ -7,9 +7,9 @@ public class PlayerSave : MonoBehaviour
 //basics
 //
 // create variables
-	private int[] playerSaveStage1 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	private int[] playerSaveStage2 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	private int[] playerSaveStage3 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	private int[] playerSaveStage1 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	private int[] playerSaveStage2 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	private int[] playerSaveStage3 = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	private int cartridge;
 	private static PlayerSave instance = null;
 	private int lvlNumber;
