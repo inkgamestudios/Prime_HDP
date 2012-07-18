@@ -19,7 +19,6 @@ public class CameraControl : MonoBehaviour {
 	private float initialRotX;
 	private float initialRotY;
 	
-	
 	//for iOS touch input panning
 	public bool iOSEnablePan=true;
 	private Vector3 lastTouchPos=new Vector3(9999, 9999, 9999);
@@ -29,7 +28,6 @@ public class CameraControl : MonoBehaviour {
 	private float touchZoomSpeed;
 	
 	public bool iOSEnableRotate=false;
-	public float rotationSpeed=1;
 	
 	public float minPosX=-10;
 	public float maxPosX=10;
@@ -39,9 +37,6 @@ public class CameraControl : MonoBehaviour {
 	
 	public float minRadius=8;
 	public float maxRadius=30;
-	
-	public float minRotateAngle=10;
-	public float maxRotateAngle=89;
 
 	//calculated deltaTime based on timeScale so camera movement speed always remain constant
 	private float deltaT;
@@ -57,8 +52,6 @@ public class CameraControl : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		minRotateAngle=Mathf.Max(10, minRotateAngle);
-		maxRotateAngle=Mathf.Min(89, maxRotateAngle);
 	}
 	
 	// Update is called once per frame
@@ -130,62 +123,9 @@ public class CameraControl : MonoBehaviour {
 			touchZoomSpeed=touchZoomSpeed*(1-Time.deltaTime*5);
 		}
 		
-		if(iOSEnableRotate){
-			if(Input.touchCount==2){
-				Touch touch1 = Input.touches[0];
-				Touch touch2 = Input.touches[1];
-				
-				Vector2 delta1=touch1.deltaPosition.normalized;
-				Vector2 delta2=touch2.deltaPosition.normalized;
-				Vector2 delta=(delta1+delta2)/2;
-				
-				float rotX=thisT.rotation.eulerAngles.x-delta.y*rotationSpeed;
-				float rotY=thisT.rotation.eulerAngles.y+delta.x*rotationSpeed;
-				rotX=Mathf.Clamp(rotX, minRotateAngle, maxRotateAngle);
-				
-				Quaternion rot=Quaternion.Euler(delta.y, delta.x, 0);
-				//Debug.Log(rotX+"   "+rotY);
-				thisT.rotation=Quaternion.Euler(rotX, rotY, 0);
-				//thisT.rotation*=rot;
-			}
-		}
-		
-		
-		
 		#endif
 		
 		#if UNITY_EDITOR || (!UNITY_IPHONE && !UNITY_ANDROID)
-		
-		//mouse and keyboard
-		if(Input.GetMouseButtonDown(1)){
-			initialMousePosX=Input.mousePosition.x;
-			initialMousePosY=Input.mousePosition.y;
-			initialRotX=thisT.eulerAngles.y;
-			initialRotY=thisT.eulerAngles.x;
-		}
-
-		if(Input.GetMouseButton(1)){
-			float deltaX=Input.mousePosition.x-initialMousePosX;
-			float deltaRotX=(.1f*(initialRotX/Screen.width));
-			float rotX=deltaX+deltaRotX;
-			
-			float deltaY=initialMousePosY-Input.mousePosition.y;
-			float deltaRotY=-(.1f*(initialRotY/Screen.height));
-			float rotY=deltaY+deltaRotY;
-			float y=rotY+initialRotY;
-			
-			//limit the rotation
-			if(y>maxRotateAngle){
-				initialRotY-=(rotY+initialRotY)-maxRotateAngle;
-				y=maxRotateAngle;
-			}
-			else if(y<minRotateAngle){
-				initialRotY+=minRotateAngle-(rotY+initialRotY);
-				y=minRotateAngle;
-			}
-			
-			thisT.rotation=Quaternion.Euler(y, rotX+initialRotX, 0);
-		}
 		
 		
 		Quaternion direction=Quaternion.Euler(0, thisT.eulerAngles.y, 0);

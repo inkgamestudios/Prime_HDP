@@ -3,6 +3,8 @@ using System.Collections;
 //using System.Collections.Generic;
 
 public class UI : MonoBehaviour {
+	
+	// we want fixed and pointNBuild
 
 	public enum _BuildMenuType{Fixed, Box, Pie}
 	public _BuildMenuType buildMenuType;
