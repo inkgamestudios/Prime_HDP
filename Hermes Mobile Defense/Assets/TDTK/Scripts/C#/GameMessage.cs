@@ -97,7 +97,7 @@ public class GameMessage : MonoBehaviour {
 			Init();
 		}
 		
-		if(gameMessage.uiFlag) UI.ShowMessage(str);
+		if(gameMessage.uiFlag) GameUI.ShowMessage(str);
 		else gameMessage.DisplayMsg(str);
 	}
 	

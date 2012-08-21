@@ -30,6 +30,4 @@ public class Menu : MonoBehaviour
 		
 		
 	}
-	
-
 }

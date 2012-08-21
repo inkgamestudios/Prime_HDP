@@ -94,63 +94,63 @@ public class CameraControl : MonoBehaviour {
 			moveDir=moveDir*(1-deltaT*5);
 		}
 		
-		if(iOSEnableZoom){
-			if(Input.touchCount==2){
-				Touch touch1 = Input.touches[0];
-				Touch touch2 = Input.touches[1];
-				
-				if(touch1.phase==TouchPhase.Moved && touch1.phase==TouchPhase.Moved){
-					//float dot=Vector2.Dot(touch1.deltaPosition, touch1.deltaPosition);
-					Vector3 dirDelta=(touch1.position-touch1.deltaPosition)-(touch2.position-touch2.deltaPosition);
-					Vector3 dir=touch1.position-touch2.position;
-					float dot=Vector3.Dot(dirDelta.normalized, dir.normalized);
-					
-					if(Mathf.Abs(dot)>0.7f){	
-						touchZoomSpeed=dir.magnitude-dirDelta.magnitude;
-					}	
-				}
-				
-			}
-			
-			//cam.Translate(Vector3.forward * touchZoomSpeed * zoomSpeed * Time.deltaTime * 0.1f);
-			
-			if(touchZoomSpeed<0){
-				if(Vector3.Distance(cam.position, thisT.position)<maxRadius){
-					cam.Translate(Vector3.forward*Time.deltaTime*zoomSpeed*touchZoomSpeed);
-				}
-			}
-			else if(touchZoomSpeed>0){
-				if(Vector3.Distance(cam.position, thisT.position)>minRadius){
-					cam.Translate(Vector3.forward*Time.deltaTime*zoomSpeed*touchZoomSpeed);
-				}
-			}
-			
-			if(cam.transform.localPosition.z>0){
-				cam.localPosition=new Vector3(cam.localPosition.x, cam.localPosition.y, 0);
-			}
-				
-			touchZoomSpeed=touchZoomSpeed*(1-Time.deltaTime*5);
-		}
-		
-		if(iOSEnableRotate){
-			if(Input.touchCount==2){
-				Touch touch1 = Input.touches[0];
-				Touch touch2 = Input.touches[1];
-				
-				Vector2 delta1=touch1.deltaPosition.normalized;
-				Vector2 delta2=touch2.deltaPosition.normalized;
-				Vector2 delta=(delta1+delta2)/2;
-				
-				float rotX=thisT.rotation.eulerAngles.x-delta.y*rotationSpeed;
-				float rotY=thisT.rotation.eulerAngles.y+delta.x*rotationSpeed;
-				rotX=Mathf.Clamp(rotX, minRotateAngle, maxRotateAngle);
-				
-				Quaternion rot=Quaternion.Euler(delta.y, delta.x, 0);
-				//Debug.Log(rotX+"   "+rotY);
-				thisT.rotation=Quaternion.Euler(rotX, rotY, 0);
-				//thisT.rotation*=rot;
-			}
-		}
+//		if(iOSEnableZoom){
+//			if(Input.touchCount==2){
+//				Touch touch1 = Input.touches[0];
+//				Touch touch2 = Input.touches[1];
+//				
+//				if(touch1.phase==TouchPhase.Moved && touch1.phase==TouchPhase.Moved){
+//					//float dot=Vector2.Dot(touch1.deltaPosition, touch1.deltaPosition);
+//					Vector3 dirDelta=(touch1.position-touch1.deltaPosition)-(touch2.position-touch2.deltaPosition);
+//					Vector3 dir=touch1.position-touch2.position;
+//					float dot=Vector3.Dot(dirDelta.normalized, dir.normalized);
+//					
+//					if(Mathf.Abs(dot)>0.7f){	
+//						touchZoomSpeed=dir.magnitude-dirDelta.magnitude;
+//					}	
+//				}
+//				
+//			}
+//			
+//			//cam.Translate(Vector3.forward * touchZoomSpeed * zoomSpeed * Time.deltaTime * 0.1f);
+//			
+//			if(touchZoomSpeed<0){
+//				if(Vector3.Distance(cam.position, thisT.position)<maxRadius){
+//					cam.Translate(Vector3.forward*Time.deltaTime*zoomSpeed*touchZoomSpeed);
+//				}
+//			}
+//			else if(touchZoomSpeed>0){
+//				if(Vector3.Distance(cam.position, thisT.position)>minRadius){
+//					cam.Translate(Vector3.forward*Time.deltaTime*zoomSpeed*touchZoomSpeed);
+//				}
+//			}
+//			
+//			if(cam.transform.localPosition.z>0){
+//				cam.localPosition=new Vector3(cam.localPosition.x, cam.localPosition.y, 0);
+//			}
+//				
+//			touchZoomSpeed=touchZoomSpeed*(1-Time.deltaTime*5);
+//		}
+//		
+//		if(iOSEnableRotate){
+//			if(Input.touchCount==2){
+//				Touch touch1 = Input.touches[0];
+//				Touch touch2 = Input.touches[1];
+//				
+//				Vector2 delta1=touch1.deltaPosition.normalized;
+//				Vector2 delta2=touch2.deltaPosition.normalized;
+//				Vector2 delta=(delta1+delta2)/2;
+//				
+//				float rotX=thisT.rotation.eulerAngles.x-delta.y*rotationSpeed;
+//				float rotY=thisT.rotation.eulerAngles.y+delta.x*rotationSpeed;
+//				rotX=Mathf.Clamp(rotX, minRotateAngle, maxRotateAngle);
+//				
+//				Quaternion rot=Quaternion.Euler(delta.y, delta.x, 0);
+//				//Debug.Log(rotX+"   "+rotY);
+//				thisT.rotation=Quaternion.Euler(rotX, rotY, 0);
+//				//thisT.rotation*=rot;
+//			}
+//		}
 		
 		
 		
@@ -159,6 +159,7 @@ public class CameraControl : MonoBehaviour {
 		#if UNITY_EDITOR || (!UNITY_IPHONE && !UNITY_ANDROID)
 		
 		//mouse and keyboard
+		//rotation for mouse and keyboard
 //		if(Input.GetMouseButtonDown(1)){
 //			initialMousePosX=Input.mousePosition.x;
 //			initialMousePosY=Input.mousePosition.y;
@@ -189,7 +190,8 @@ public class CameraControl : MonoBehaviour {
 //			thisT.rotation=Quaternion.Euler(y, rotX+initialRotX, 0);
 //		}
 		
-		
+		//directional arrows for panning
+		//Quaternion direction is taking the angle of the current camera and making it static while panning
 		Quaternion direction=Quaternion.Euler(0, thisT.eulerAngles.y, 0);
 		
 		if(Input.GetButton("Horizontal")) {
@@ -224,7 +226,6 @@ public class CameraControl : MonoBehaviour {
 		//float y=Mathf.Clamp(thisT.position.y, verticalLimitBottom, verticalLimitTop);
 		
 		thisT.position=new Vector3(x, thisT.position.y, z);
-		
 	}
 	
 }

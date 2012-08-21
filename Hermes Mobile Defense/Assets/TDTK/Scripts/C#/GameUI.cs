@@ -2,13 +2,11 @@ using UnityEngine;
 using System.Collections;
 //using System.Collections.Generic;
 
-public class UI : MonoBehaviour {
+public class GameUI : MonoBehaviour {
 
-//	public enum _BuildMenuType{Fixed, Box, Pie}
 	public enum _BuildMenuType{Fixed}
 	public _BuildMenuType buildMenuType;
 	
-//	public enum _BuildMode{PointNBuild, DragNDrop}
 	public enum _BuildMode{PointNBuild}
 	public _BuildMode buildMode;
 	
@@ -36,17 +34,58 @@ public class UI : MonoBehaviour {
 	private bool winLostFlag=false;
 	
 	private bool paused=false;
+	private float timeHolder = 1;
 	
-	private static UI ui;
+	private UIButton cog;
+	private UIButton playButton;
+	private UIButton sell;
+	private UIButton pause;
+	private UIButton upgrade;
+	private UIButton fastForward;
+	
+	private UISprite wave;
+	private UISprite life;
+	private UISprite energy;
+	private UISprite power;
+	
+	private UIButton sound;
+	private UIButton quit;
+	private UIButton replay;
+
+	private UIButton tower1;
+	private UIButton tower2;
+	private UIButton tower3;
+	private UIButton tower4;
+	private UIButton tower5;
+	private UIButton tower6;
+	private UIButton tower7;
+	private UIButton tower8;
+	private UIButton tower9;
+	
+	private UIButton ability1;
+	private UIButton ability2;
+	private UIButton ability3;
+	private UIButton ability4;
+	private UIButton ability5;
+	
+	private UIVerticalPanel pauseScreen;
+	
+	private Rect topPanelRect=new Rect(-3, -3, Screen.width+6, 28);
+	private Rect bottomPanelRect;
+	private Rect buildListRect;
+	private Rect towerUIRect;
+	private Rect[] scatteredRectList=new Rect[0];
+	
+	private static GameUI gameui;
 	void Awake(){
-		ui=this;
+		gameui=this;
 	}
 	
 	private string gameMessage="";
 	private float lastMsgTime=0;
 	public static void ShowMessage(string msg){
-		ui.gameMessage=ui.gameMessage+msg+"\n";
-		ui.lastMsgTime=Time.time;
+		gameui.gameMessage=gameui.gameMessage+msg+"\n";
+		gameui.lastMsgTime=Time.time;
 	}
 	IEnumerator MessageCountDown(){
 		while(true){
@@ -61,30 +100,14 @@ public class UI : MonoBehaviour {
 	}
 	
 	// Use this for initialization
-	void Start () {		
+	void Start () {	
 		
-		//init the rect to be used for drawing ui box
-		topPanelRect=new Rect(-3, -3, Screen.width+6, 28);
-		
-		bottomPanelRect=new Rect(-3, Screen.height-25, Screen.width+6, 28);
-		
-		//init ui rect for DragNDrop mode, this will be use throughout the entire game
-//		if(buildMode==_BuildMode.DragNDrop){
-//			UnitTower[] fullTowerList=BuildManager.GetTowerList();
-//			int width=50;
-//			int height=50;
-//			
-//			int x=0;
-//			int y=Screen.height-height-6-(int)bottomPanelRect.height;
-//			int menuLength=(fullTowerList.Length)*(width+3);
-//			
-//			buildListRect=new Rect(x, y, menuLength+3, height+6);
-//		}
-		
+		DrawGUI();
+
 		//initiate sample menu, so player can preview the tower in pointNBuild buildphase
 		if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.InitiateSampleTower();
-		
 		StartCoroutine(MessageCountDown());
+		
 	}
 	
 	
@@ -116,9 +139,13 @@ public class UI : MonoBehaviour {
 	}
 	
 	//call to enable/disable pause
-	void TogglePause(){
+	void TogglePause()
+	{
+		Debug.Log( "first paused is " + paused );
 		paused=!paused;
+		Debug.Log( "second paused is " + paused );
 		if(paused){
+			timeHolder = Time.timeScale;
 			Time.timeScale=0;
 			
 			//close all the button, so user can interact with game when it's paused
@@ -131,15 +158,21 @@ public class UI : MonoBehaviour {
 				BuildManager.ClearBuildPoint();
 			}
 		}
-		else Time.timeScale=1;
+		else 
+		{
+			Time.timeScale=timeHolder;
+		}
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update () 
+	{
 		#if !UNITY_IPHONE && !UNITY_ANDROID
 			if(buildMode==_BuildMode.PointNBuild)
 				BuildManager.SetIndicator(Input.mousePosition);
 		#endif
+		
+		
 		
 		if(Input.GetMouseButtonUp(0) && !IsCursorOnUI(Input.mousePosition) && !paused){
 			
@@ -173,7 +206,6 @@ public class UI : MonoBehaviour {
 					//check for build point, if true initiate build menu
 					if(BuildManager.CheckBuildPoint(Input.mousePosition)){
 						UpdateBuildList();
-						InitBuildListRect();
 						buildMenu=true;
 					}
 					//if there are no valid build point but we are in build mode, disable it
@@ -214,24 +246,11 @@ public class UI : MonoBehaviour {
 	//check if user has click on creep, if yes and if current tower is eligible to attack it, set the assign it as tower target
 	void CheckForTarget(){
 		currentSelectedTower.CheckForTarget(Input.mousePosition);
-		//~ Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		//~ RaycastHit hit;
-		//~ LayerMask mask=currentSelectedTower.GetTargetMask();
-		//~ if(Physics.Raycast(ray, out hit, Mathf.Infinity, mask)){
-			//~ Unit unit=hit.collider.gameObject.GetComponent<Unit>();
-			//~ if(unit!=null){
-				//~ currentSelectedTower.AssignTarget(unit);
-			//~ }
-		//~ }
 	}
 	
 	
-	private Rect topPanelRect=new Rect(-3, -3, Screen.width+6, 28);
-	private Rect bottomPanelRect;
-	private Rect buildListRect;
-	private Rect towerUIRect;
-	private Rect[] scatteredRectList=new Rect[0];	//for piemenu
-	
+
+// not sure if this is needed given the fact that we are using uitoolkit
 	//check for all UI screen space, see if user cursor is within any of them, return true if yes
 	//this is to prevent user from being able to interact with in game object even when clicking on UI panel and buttons
 	public bool IsCursorOnUI(Vector3 point){
@@ -265,212 +284,236 @@ public class UI : MonoBehaviour {
 	//clear all ui space occupied by build menu
 	void ClearBuildListRect(){
 		if(buildMode==_BuildMode.PointNBuild){
-//			if(buildMenuType==_BuildMenuType.Pie) scatteredRectList=new Rect[0];
-//			else 
 			buildListRect=new Rect(0, 0, 0, 0);
 		}
 	}
 	
-	//initiate ui space that will be occupied by build menu
-	void InitBuildListRect(){
-		if(buildMode==_BuildMode.PointNBuild){
-			if(buildMenuType==_BuildMenuType.Fixed){
-				int width=50;
-				int height=50;
-						
-				int x=0;
-				int y=Screen.height-height-6-(int)bottomPanelRect.height;
-						
-				int menuLength=(currentBuildList.Length+1)*(width+3);
-				
-				//calculate the buildlist rect
-				buildListRect=new Rect(x, y, menuLength+3, height+6);
-			}
-//			else if(buildMenuType==_BuildMenuType.Box){
-//				//since this is a floating menu, the actual location cannot be pre-calculated
-//				//instead it will be calculated in every frame in OnGUI()
-//			}
-//			else if(buildMenuType==_BuildMenuType.Pie){
-//				//since this is a floating menu, the actual location cannot be pre-calculated
-//				//instead it will be calculated in every frame in OnGUI()
-//			}
-		}
-//		else if(buildMode==_BuildMode.DragNDrop){
-//			//DragNDrop mode will always have build menu enable, so no need to calculate it
-//		}
+	// simple gamespeed method
+	void GameSpeed(int speed){
+		Time.timeScale = speed;
 	}
 	
-	//calculate the position occupied by each individual button based on number of button, position on screen and button size
-//	public Vector2[] GetPieMenuPos(int num, Vector3 pos, int size){
-//		//first off calculate the radius require to accomodate all buttons
-//		float radius=(num*size*1.8f)/(2*Mathf.PI);
-//		
-//		//create the rect array and the angle spacing required for the number of button
-//		Vector2[] piePos=new Vector2[num];
-//		float angle=200/(Mathf.Max(1, num-1));
-//		
-//		//loop through and calculate the button's position
-//		for(int i=0; i<num; i++){
-//			float x = pos.x+radius*Mathf.Sin((80)*Mathf.Deg2Rad+i*angle*Mathf.PI/180);
-//			float y = pos.y+radius*-Mathf.Cos((80)*Mathf.Deg2Rad+i*angle*Mathf.PI/180);
-//			
-//			piePos[i]=new Vector2(x, y);
+// used to swap the play and pause button positions
+	void swapButtons( UIButton orig, UIButton swaped )
+	{
+		Vector3 holder;
+		holder = orig.position;
+		orig.position = swaped.position;
+		swaped.position = holder;
+	}
+	
+	void playButtonCommands()
+	{
+		if(enableSpawnButton)
+		{
+			//if the game is not ended
+			if(GameControl.gameState!=_GameState.Ended)
+			{
+				//if spawn is successful, disable the spawnButton
+				SpawnManager.Spawn();
+				Debug.Log( "play button pushed" );
+				swapButtons( playButton, pause );
+				enableSpawnButton=false;
+			}
+		}
+		else if(!enableSpawnButton)
+		{
+			if(GameControl.gameState!=_GameState.Ended)
+			{
+				TogglePause();
+				swapButtons( playButton, pause );
+			}
+		}
+	}
+	
+	void pauseCommands()
+	{
+		TogglePause();
+		swapButtons( playButton, pause );
+	}
+	
+	void FFCommands()
+	{
+		if(!paused)
+		{
+			if(Time.timeScale == 1)
+			{
+				// need a fastforward up and down phase
+				GameSpeed(fastForwardSpeed);
+				Debug.Log ("timescale now increased");
+			}
+			else if(Time.timeScale == fastForwardSpeed)
+			{
+				GameSpeed( 1 );
+				Debug.Log ("timescale now 1");
+			}
+		}
+	}
+	
+	void cogCommands()
+	{
+		pauseScreen.positionCenter();
+	}
+	
+	//draw GUI 
+	void DrawGUI()
+	{
+			
+		playButton = UIButton.create( "Play.png", "Play.png", 3, 3 );
+		pause = UIButton.create( "Pause.png", "Pause.png", 0, -Screen.height );
+		fastForward = UIButton.create( "FastForward.png", "FastForward.png", (int)playButton.width + 5, 3 );
+		cog = UIButton.create( "Cog.png", "Cog.png", 0, 0 );
+		cog.position = new Vector2( 1, -Screen.height + (cog.height + 1) );
+		
+		sound = UIButton.create( "PowerIcon.png", "PowerIcon.png", 0, 0 );
+		quit = UIButton.create( "EnergyIcon.png", "EnergyIcon.png", 0, 0 );
+		replay = UIButton.create( "Cog.png", "Cog.png", 0, 0 );
+
+		pauseScreen = UIVerticalPanel.create( "PanelsTop.png", "PanelsCenter2.png", "PanelsBottom.png" );
+		pauseScreen.beginUpdates();
+		pauseScreen.spacing = 20;
+		pauseScreen.edgeInsets = new UIEdgeInsets( 30, 10, 20, 10 );
+		pauseScreen.addChild( sound, quit, replay );
+		pauseScreen.endUpdates();
+
+		pauseScreen.positionCenter();
+		
+		playButton.onTouchUpInside += sender => playButtonCommands();
+		pause.onTouchUpInside += sender => pauseCommands();
+		fastForward.onTouchUpInside += sender => FFCommands();
+		cog.onTouchUpInside += sender => cogCommands();
+
+
+//		tower1 = UIButton.create( "FillerButton1.png", "FillerButton1.png", 0, 0);
+//		tower1.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
+
+//		UIHorizontalLayout towers = new UIHorizontalLayout( 0 );
+//		for( int x = 0; x < counter; x++ )
+//		{
+//			towers.addChild( unlockedTowers[x] );
 //		}
 //		
-//		return piePos;
-//	}
-	
-	
-	//draw GUI
-	void OnGUI(){
-		GUI.depth=100;
+//		towers.position = new Vector2( cog.width, -Screen.height + (int)tower1.height );
+//			
+//		cog.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
+
+		//if not pause, draw the spawnButton and fastForwardButton
 		
-		//general infobox
-		//draw top panel
-		GUI.BeginGroup (topPanelRect);
-			for(int i=0; i<2; i++) GUI.Box(new Rect(0, 0, topPanelRect.width, topPanelRect.height), "");
-		
-			int buttonX=8;
-		
-			//if not pause, draw the spawnButton and fastForwardButton
-			if(!paused){
-				//if SpawnManager is ready to spawn
-				if(enableSpawnButton){
-					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Spawn")){
-						//if the game is not ended
-						if(GameControl.gameState!=_GameState.Ended){
-							//if spawn is successful, disable the spawnButton
-							if(SpawnManager.Spawn())
-								enableSpawnButton=false;
-						}
-					}
-					buttonX+=65;
-				}
-				
-				//display the fastforward button based on current time scale
-				if(Time.timeScale==1){
-					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex"+fastForwardSpeed.ToString())){
-						Time.timeScale=fastForwardSpeed;
-					}
-				}
-				else{
-					if(GUI.Button(new Rect(buttonX, 5, 60, 20), "Timex1")){
-						Time.timeScale=1;
-					}
-				}
-			}
+
+
 			//shift the cursor to where the next element will be drawn
-			else buttonX+=65;
-			buttonX+=130;
+//			else buttonX+=65;
+//			buttonX+=130;
 			
 			//draw life and wave infomation
-			GUI.Label(new Rect(200, 5, 100, 30), "Life: "+GameControl.GetPlayerLife());
-			GUI.Label(new Rect(200+(topPanelRect.width-35-buttonX)/2, 5, 100, 30), "Wave: "+SpawnManager.GetCurrentWave()+"/"+SpawnManager.GetTotalWave());
+//			GUI.Label(new Rect(200, 5, 100, 30), "Life: "+GameControl.GetPlayerLife());
+//			GUI.Label(new Rect(200+(topPanelRect.width-35-buttonX)/2, 5, 100, 30), "Wave: "+SpawnManager.GetCurrentWave()+"/"+SpawnManager.GetTotalWave());
 			
-			//pause button
-			if(GUI.Button(new Rect(topPanelRect.width-30, 5, 25, 20), "II")) {
-				TogglePause();
-			}
-		GUI.EndGroup ();
 			
 		//draw bottom panel
-		GUI.BeginGroup (bottomPanelRect);
-			for(int i=0; i<2; i++) GUI.Box(new Rect(0, 0, bottomPanelRect.width, bottomPanelRect.height), "");
+//		GUI.BeginGroup (bottomPanelRect);
+//			for(int i=0; i<2; i++) GUI.Box(new Rect(0, 0, bottomPanelRect.width, bottomPanelRect.height), "");
 		
 			//get all the resource information
-			Resource[] resourceList=GameControl.GetResourceList();
-			float subStartX=10; float subStartY=0; float width=0f;
+		Resource[] resourceList=GameControl.GetResourceList();
+		float subStartX=10; float subStartY=0; float width=0f;
+		
+//		GUI.Label(new Rect(subStartX, subStartY+2, 70f, 25f), "Resource:");
+		subStartX+=70;
+		
+		//display all the resource
+		for(int i=0; i<resourceList.Length; i++)
+		{
 			
-			GUI.Label(new Rect(subStartX, subStartY+2, 70f, 25f), "Resource:");
-			subStartX+=70;
-			
-			//display all the resource
-			for(int i=0; i<resourceList.Length; i++){
-				
-				//if an icon has been assigned to that particular resource type
-				if(resourceList[i].icon!=null){
-					GUI.Label(new Rect(subStartX, subStartY, 20f, 25f), resourceList[i].icon);
-					subStartX+=20;
-					GUI.Label(new Rect(subStartX, subStartY+2, 40, 25), resourceList[i].value.ToString());
-					subStartX+=40;
-				}
-				//if not icon, just show the text
-				else {
-					GUIContent labelRsc=new GUIContent(resourceList[i].value.ToString()+resourceList[i].name);
-					GUI.skin.GetStyle("Label").CalcMinMaxWidth(labelRsc, out width, out width);
-					GUI.Label(new Rect(subStartX, subStartY+2, width, 25), labelRsc);
-					subStartX+=width;
-				}
-				
+			//if an icon has been assigned to that particular resource type
+			if(resourceList[i].icon!=null)
+			{
+//				GUI.Label(new Rect(subStartX, subStartY, 20f, 25f), resourceList[i].icon);
+				subStartX+=20;
+//				GUI.Label(new Rect(subStartX, subStartY+2, 40, 25), resourceList[i].value.ToString());
+				subStartX+=40;
 			}
-		GUI.EndGroup ();
+			//if not icon, just show the text
+			else 
+			{
+//				GUIContent labelRsc=new GUIContent(resourceList[i].value.ToString()+resourceList[i].name);
+//				GUI.skin.GetStyle("Label").CalcMinMaxWidth(labelRsc, out width, out width);
+//				GUI.Label(new Rect(subStartX, subStartY+2, width, 25), labelRsc);
+//				subStartX+=width;
+			}
+			
+		}
+//		GUI.EndGroup ();
 		
 		
 		//if game is still not over
-		if(GameControl.gameState!=_GameState.Ended){
+		if(GameControl.gameState!=_GameState.Ended)
+		{
 			
 			//clear tooltip, each button when hovered will assign tooltip with corresponding ID
 			//the tooltip will be checked later, if there's anything, we show the corresponding tooltip
-			GUI.tooltip="";
+			
+//			GUI.tooltip="";
 			
 			//build menu
-			if(buildMode==_BuildMode.PointNBuild){
+			if(buildMode==_BuildMode.PointNBuild)
+			{
 				//if PointNBuild mode, only show menu when there are active buildpoint (build menu on)
-				if(buildMenu){
+				if(buildMenu)
+				{
 					if(buildMenuType==_BuildMenuType.Fixed) BuildMenuFix();
-//					else if(buildMenuType==_BuildMenuType.Box) BuildMenuBox();
-//					else if(buildMenuType==_BuildMenuType.Pie) BuildMenuPie();
 				}
 				//if there's no build menu, clear the buildList rect
-				else buildListRect=new Rect(0, 0, 0, 0);
+//				else buildListRect=new Rect(0, 0, 0, 0);
 			}
-//			else if(buildMode==_BuildMode.DragNDrop){
-//				//if DragNDrop mode, show menu all time
-//				BuildMenuAllTowersFix();
-//			}
 			
 			//if the cursor is hover on top of tower button, the tooltip will bear the ID of the Buildable Tower
-			if(GUI.tooltip!=""){
+			if(GUI.tooltip!="")
+			{
 				int ID=int.Parse(GUI.tooltip);
 				//show the build tooltip
 				ShowToolTip(ID);
 				//if no preview has been showing, preview the sample tower on the grid, only needed in PointNBuild mode
 				if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.ShowSampleTower(ID); 
 			}
-			else{
+			else
+			{
 				//if a sample tower is shown on the grid, only needed in PointNBuild mode
 				if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.ClearSampleTower();
 			}
 			
 			//selected tower information UI
-			if(currentSelectedTower!=null){
+			if(currentSelectedTower!=null)
+			{
 				SelectedTowerUI();
 			}
 			//else towerUIRect=new Rect(0, 0, 0, 0);
 			
 			//if paused, draw the pause menu
-			if(paused){
+			if(paused)
+			{
 				float startX=Screen.width/2-100;
 				float startY=Screen.height*0.35f;
 				
-				for(int i=0; i<4; i++) GUI.Box(new Rect(startX, startY, 200, 150), "Game Paused");
-				
-				startX+=50;
-				
-				if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Resume Game")){
-					TogglePause();
-				}
-				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
-					Application.LoadLevel(Application.loadedLevelName);
-				}
-				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
-					if(mainMenu!="") Application.LoadLevel(mainMenu);
-				}
+//				GUI.Box(new Rect(startX, startY, 200, 150), "Game Paused");
+//				
+//				startX+=50;
+//				
+//				if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Resume Game")){
+//					TogglePause();
+//				}
+//				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
+//					Application.LoadLevel(Application.loadedLevelName);
+//				}
+//				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
+//					if(mainMenu!="") Application.LoadLevel(mainMenu);
+//				}
 			}
 			
 		}
 		//gameOver, draw the game over screen
-		else{
+		else
+		{
 			
 			float startX=Screen.width/2-100;
 			float startY=Screen.height*0.35f;
@@ -478,35 +521,37 @@ public class UI : MonoBehaviour {
 			string levelCompleteString="Level Complete";
 			if(!winLostFlag) levelCompleteString="Level Lost";
 		
-			for(int i=0; i<4; i++) GUI.Box(new Rect(startX, startY, 200, 150), levelCompleteString);
 			
-			startX+=50;
-			
-			if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Restart Level")){
-				Application.LoadLevel(Application.loadedLevelName);
-			}
-			if(alwaysEnableNextButton || winLostFlag){
-				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
-					if(nextLevel!="") Application.LoadLevel(nextLevel);
-				}
-			}
-			if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
-				if(mainMenu!="") Application.LoadLevel(mainMenu);
-			}
+//			GUI.Box(new Rect(startX, startY, 200, 150), levelCompleteString);
+//			startX+=50;
+//
+//			if(GUI.Button(new Rect(startX, startY+=30, 100, 30), "Restart Level")){
+//				Application.LoadLevel(Application.loadedLevelName);
+//			}
+//			if(alwaysEnableNextButton || winLostFlag){
+//				if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Next Level")){
+//					if(nextLevel!="") Application.LoadLevel(nextLevel);
+//				}
+//			}
+//			if(GUI.Button(new Rect(startX, startY+=35, 100, 30), "Main Menu")){
+//				if(mainMenu!="") Application.LoadLevel(mainMenu);
+//			}
 		
 		}
 		
 		
 		//if game message is not empty, show the game message.
 		//shift the text alignment to LowerRight first then back to UpperLeft after the message
-		if(gameMessage!=""){
-			GUI.skin.label.alignment=TextAnchor.LowerRight;
-			GUI.Label(new Rect(0, 0, Screen.width-5, Screen.height+12), gameMessage);
-			GUI.skin.label.alignment=TextAnchor.UpperLeft;
+//		if(gameMessage!="")
+		{
+//			GUI.skin.label.alignment=TextAnchor.LowerRight;
+//			GUI.Label(new Rect(0, 0, Screen.width-5, Screen.height+12), gameMessage);
+//			GUI.skin.label.alignment=TextAnchor.UpperLeft;
 		}
 		
 	}
 	
+//	DO NOT NEED TOOLTIP
 	//show tooptip when a build button is hovered
 	void ShowToolTip(int ID){
 		
@@ -549,11 +594,6 @@ public class UI : MonoBehaviour {
 		//set the tooltip draw position
 		int y=32;
 		int x=5;
-		//if this is a fixed or drag and drop mode, tooltip always appear at bottom left corner instaed of top left corner
-//		if(buildMenuType==_BuildMenuType.Fixed || buildMode==_BuildMode.DragNDrop){
-//			y=(int)(Screen.height-height-buildListRect.height-bottomPanelRect.height-2);
-//			x=(int)(Mathf.Floor(Input.mousePosition.x/50))*50;
-//		}
 
 		//define the rect then draw the box
 		Rect rect=new Rect(x, y, 160, height);
@@ -591,134 +631,7 @@ public class UI : MonoBehaviour {
 			GUI.Label(new Rect(5, 5+heightC+heightT, 150, heightD), guiContent);
 		GUI.EndGroup();
 	}
-	
-	
-	
-	//for drag and drop, show all available tower
-//	void BuildMenuAllTowersFix(){
-//		UnitTower[] towerList=BuildManager.GetTowerList();
-//		
-//		int width=50;
-//		int height=50;
-//		
-//		int x=0;
-//		int y=Screen.height-height-6-(int)bottomPanelRect.height;
-//		
-//		for(int i=0; i<3; i++) GUI.Box(buildListRect, "");
-//		
-//		x+=3;	y+=3;
-//		
-//		for(int i=0; i<towerList.Length; i++){
-//			UnitTower tower=towerList[i];
-//				
-//			GUIContent guiContent=new GUIContent(tower.icon, i.ToString()); 
-//			if(GUI.Button(new Rect(x, y, width, height), guiContent)){
-//				BuildManager.BuildTowerDragNDrop(tower);
-//			}
-//			
-//			x+=width+3;
-//		}
-//	}
-	
-	
-//	void BuildMenuPie(){
-//		BuildableInfo currentBuildInfo=BuildManager.GetBuildInfo();
-//				
-//		//calculate the position in which the build list ui will be appear at
-//		Vector3 screenPos = Camera.main.WorldToScreenPoint(currentBuildInfo.position);
-//		
-//		int width=50;
-//		int height=50;
-//		
-//		Vector2[] piePos=GetPieMenuPos(currentBuildList.Length, screenPos, (int)1.414f*(width+height)/2);
-//		
-//		scatteredRectList=new Rect[currentBuildList.Length+1];
-//
-//		//show up the build buttons, scrolling through currentBuildList initiated whevenever the menu is first brought up
-//		UnitTower[] towerList=BuildManager.GetTowerList();
-//			
-//		for(int num=0; num<currentBuildList.Length; num++){
-//			int ID=currentBuildList[num];
-//			
-//			if(ID>=0){
-//				UnitTower tower=towerList[ID];
-//				Vector2 point=piePos[num];
-//				
-//				scatteredRectList[num]=new Rect(point.x-width/2, Screen.height-point.y-height*0.75f, width, height);
-//				
-//				GUIContent guiContent=new GUIContent(tower.icon, ID.ToString()); 
-//				if(GUI.Button(scatteredRectList[num], guiContent)){
-//					//if building was successful, break the loop can close the panel
-//					if(BuildButtonPressed(tower)) return;
-//				}
-//				
-//			}
-//		}
-//			
-//		//clear buildmode button
-//		scatteredRectList[currentBuildList.Length]=new Rect(screenPos.x-width/2, Screen.height-screenPos.y+height*0.5f, width, height);
-//		
-//		if(GUI.Button(scatteredRectList[currentBuildList.Length], "X")){
-//			buildMenu=false;
-//			BuildManager.ClearBuildPoint();
-//			ClearBuildListRect();
-//		}
-//	}
-	
-	
-//	void BuildMenuBox(){
-//		BuildableInfo currentBuildInfo=BuildManager.GetBuildInfo();
-//				
-//		//calculate the position in which the build list ui will be appear at
-//		Vector3 screenPos = Camera.main.WorldToScreenPoint(currentBuildInfo.position);
-//		
-//		int width=50;
-//		int height=50;
-//				
-//		int x=(int)screenPos.x-width;
-//		x=Mathf.Clamp(x, 0, Screen.width-width*2);
-//				
-//		int menuLength=((int)Mathf.Floor((currentBuildList.Length+2)/2))*(height+3);
-//		int y=Screen.height-(int)screenPos.y;	//invert the height
-//		y-=menuLength/2-3;
-//		y=Mathf.Clamp(y, 29, Screen.height-menuLength-(int)bottomPanelRect.height);
-//		
-//		//calculate the buildlist rect
-//		buildListRect=new Rect(x-3, y-3, width*2+6+3, menuLength+4);
-//		for(int i=0; i<3; i++) GUI.Box(buildListRect, "");
-//		
-//		//show up the build buttons, scrolling through currentBuildList initiated whevenever the menu is first brought up
-//		UnitTower[] towerList=BuildManager.GetTowerList();
-//			
-//		for(int num=0; num<currentBuildList.Length; num++){
-//			int ID=currentBuildList[num];
-//			
-//			if(ID>=0){
-//				UnitTower tower=towerList[ID];
-//				
-//				GUIContent guiContent=new GUIContent(tower.icon, ID.ToString()); 
-//				if(GUI.Button(new Rect(x, y, width, height), guiContent)){
-//					//if building was successful, break the loop can close the panel
-//					if(BuildButtonPressed(tower)) return;
-//				}
-//				
-//				if(num%2==1){
-//					x-=width+3;
-//					y+=height+3;
-//				}
-//				else x+=width+3;
-//			}
-//		}
-//			
-//		//clear buildmode button
-//		if(GUI.Button(new Rect(x, y, width, height), "X")){
-//			buildMenu=false;
-//			BuildManager.ClearBuildPoint();
-//			ClearBuildListRect();
-//		}
-//	}
-	
-	
+
 	void BuildMenuFix(){
 		
 		int width=50;
@@ -1009,7 +922,6 @@ public class UI : MonoBehaviour {
 		}
 	}
 	
-	
 	//called whevenever the build list is called up
 	//compute the number of tower that can be build in this build pointer
 	//store the tower that can be build in an array of number that reference to the towerlist
@@ -1058,14 +970,4 @@ public class UI : MonoBehaviour {
 		currentBuildList=new int[count];
 		for(int i=0; i<currentBuildList.Length; i++) currentBuildList[i]=tempBuildList[i];
 	}
-	
-	void OnDrawGizmos(){
-		if(buildMenu){
-			//BuildableInfo currentBuildInfo=BuildManager.GetBuildInfo();
-			//float gridSize=BuildManager.GetGridSize();
-			//Gizmos.DrawCube(currentBuildInfo.position, new Vector3(gridSize, 0, gridSize));
-		}
-	}
-	
-	
 }
