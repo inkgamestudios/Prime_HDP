@@ -1,18 +1,17 @@
 using UnityEngine;
 using System.Collections;
+//using System.Collections.Generic;
 
 public class PlayerSave : MonoBehaviour 
 {
-//
-//basics
-//
+// UnitTower[] filled with the unlocked towers	
+	public UnitTower[] PSTowers;
+	
 // create variables
 	private int[] playerSaveStage1 = new int[60];
 	private int[] playerSaveStage2 = new int[55];
 	private int[] playerSaveStage3 = new int[55];
 	private int cartridge;
-	
-	private static PlayerSave instance = null;
 	
 	private int lvlNumber;
 	private int score;
@@ -20,7 +19,7 @@ public class PlayerSave : MonoBehaviour
 	private string currentStage;
 	
 	private static bool tower1 = true;
-	private static bool tower2 = false;
+	private static bool tower2 = true;
 	private static bool tower3 = false;
 	private static bool tower4 = false;
 	private static bool tower5 = false;
@@ -32,6 +31,8 @@ public class PlayerSave : MonoBehaviour
 	private static bool ability1 = false;
 	private static bool ability2 = false;
 	private static bool ability3 = false;
+	
+
 
 	//playerPrefs save names
 	//playerSaveStage1 = playerSaveS1
@@ -39,30 +40,7 @@ public class PlayerSave : MonoBehaviour
 	//playerSaveStage3 = playerSaveS3
 	//cartridge = cart
 	
-	// creates an instance of this script
-	public static PlayerSave Instance
-    {
-        get
-        {
-            return instance;
-        }
-    }
-	
-	// ensures that the save function carries through the levels
-	void Awake()
-	{
-		// if this script exists already destroy it
-        if (instance != null && instance != this)
-        {
-            Destroy(this);
-            return;
-        }
-        instance = this;
-        DontDestroyOnLoad(this);
-	}
-	
-	void Start()
-	{
+	void Awake(){
 		// currentStage and lvlNumber get set when selecting a button in LevelSelect.cs
 		// get if lvl passed, get score, then run set array
 		// need if statement for if playerSaveS1 - 3 already exists don't do this else create them
@@ -77,12 +55,17 @@ public class PlayerSave : MonoBehaviour
 		}
 		
 		LoadArrayUpdate();
-		
-		// if (levelPassed)
-		// sets score into the local array
-		SetScore();	// not created yet
-		SetArrayUpdate();
+	}
 
+	void Start(){
+	}
+	
+	void Update()
+	{
+		if( GameControl.gameState == _GameState.Ended )
+		{
+			SetScore();
+		}
 	}
 	
 	// loads Array into editable arrays from playerprefs
@@ -210,16 +193,17 @@ public class PlayerSave : MonoBehaviour
 	// checks if the level is complete and if it is it saves the end score into the local array.
 	private void SetScore()
 	{
-		if( GameControl.gameState == _GameState.Ended )
-		{
-			score = GameControl.GetResourceVal(2); // need to check if this works
-			Sorter ( stageNumber, lvlNumber );
-		}
+		score = GameControl.GetResourceVal(2); // need to check if this works
+		// sorts the new score
+		Sorter ( stageNumber, lvlNumber );
+		// updates the save file
+		SetArrayUpdate();
 	}
 
 	// returns the score based on current stage and lvl.
 	public int GetScore()
 	{
+#pragma warning disable 0162
 		switch(stageNumber)
 		{
 			case 1:
@@ -237,11 +221,13 @@ public class PlayerSave : MonoBehaviour
 				return 0;
 				break;
 		}
+#pragma warning restore 0162
 	}
 
 	// gets scores on different stages/lvl's other then current.
 	public int GetScoresTier(int stage, int lvl)
 	{
+#pragma warning disable 0162
 		switch(stage)
 		{
 			case 1:
@@ -259,69 +245,95 @@ public class PlayerSave : MonoBehaviour
 				return 0;
 				break;
 		}
+#pragma warning restore 0162
 	}
-	
+
 // Need the names of the towers to finish this part of class.	******
 	public UnitTower[] UnlockedTowers()
 	{
+		// sets bool values if things are unlocked
+		CheckReward();
+		
+		int counter = 0;
 		int total = 0;
-		int count = 0;
+		GameObject towerObj;
+		
 		bool[] unlocks = new bool[9] {tower1, tower2, tower3, tower4, tower5, tower6, tower7, tower8, tower9};
 		foreach( bool i in unlocks)
 		{
 			if( i )
 			{
-				total++;
+				++total;
 			}
 		}
 
-		UnitTower[] towers = new UnitTower[total];
+		PSTowers = new UnitTower[total];
+		// All tower prefabs need to be in a resource folder for resources.load to find it
+		// Also need tower names...
 		if( tower1 )
 		{
-			//towers[count] = nameOfTower;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower2 )
 		{
-			//towers[count] = nameOfTower2;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerResource"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower3 )
 		{
-			//towers[count] = nameofTower3;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerTurret_Canon"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower4 )
 		{
-			//towers[count] = nameofTower4;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower5 )
 		{
-			//towers[count] = nameofTower5;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower6 )
 		{
-			//towers[count] = nameofTower6;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower7 )
 		{
-			//towers[count] = nameofTower7;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower8 )
 		{
-			//towers[count] = nameofTower8;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
 		if( tower9 )
 		{
-			//towers[count] = nameofTower9;
-			count++;
+			towerObj = (GameObject)Instantiate(Resources.Load ("TowerAOE"));
+			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
+			towerObj.SetActiveRecursively(false);
+			++counter;
 		}
-		return towers;
+		return PSTowers;
 	}
 	
 	// bubble sort and save results back into local array.
@@ -439,7 +451,7 @@ public class PlayerSave : MonoBehaviour
 		int[] highScores = new int[5];
 		foreach(int i in highScores)
 		{
-			GetScoresTier( stage, lvl );
+			highScores[i] = GetScoresTier( stage, lvl );
 			lvl++;
 		}
 		return highScores;

@@ -1358,7 +1358,9 @@ public class UnitTower : Unit {
 	}
 	
 	public int[] GetCost(){
-		if(level<=0) return baseStat.costs;
+		if(level<=0){
+			return baseStat.costs;
+		}
 		else{
 			if(level-1<upgradeStat.Length){
 				return upgradeStat[level-1].costs;

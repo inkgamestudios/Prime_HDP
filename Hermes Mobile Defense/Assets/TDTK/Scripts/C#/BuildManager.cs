@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class BuildManager : MonoBehaviour {
 
@@ -40,6 +41,9 @@ public class BuildManager : MonoBehaviour {
 		_gridSize=gridSize;
 		
 		InitPlatform();
+		
+		GameObject Unlocks = GameObject.Find("Save");
+		towers = Unlocks.GetComponent<PlayerSave>().UnlockedTowers();
 	}
 	
 
@@ -119,6 +123,7 @@ public class BuildManager : MonoBehaviour {
 			
 			Destroy(indicator.collider);
 			Destroy(indicator2.collider);
+
 		}
 	}
 	
@@ -374,7 +379,7 @@ public class BuildManager : MonoBehaviour {
 		
 		return null;
 	}
-	
+// we use pointNBuild
 	//called by any external component to build tower, uses currentBuildInfo, return false if there isnt one
 	public static UnitTower BuildTowerPointNBuild(UnitTower tower){
 		if(currentBuildInfo==null) return null;
@@ -456,7 +461,7 @@ public class BuildManager : MonoBehaviour {
 	static public BuildableInfo GetBuildInfo(){
 		return currentBuildInfo;
 	}
-	
+
 	static public UnitTower[] GetTowerList(){
 		return buildManager.towers;
 	}
@@ -472,7 +477,6 @@ public class BuildManager : MonoBehaviour {
 		//if(debugSelectPos) Gizmos.DrawCube(SelectBuildPos(Input.mousePosition), new Vector3(gridSize, 0, gridSize));
 		
 	}
-	
 }
 
 
