@@ -10,17 +10,10 @@ public class GameUI : MonoBehaviour {
 	public enum _BuildMode{PointNBuild}
 	public _BuildMode buildMode;
 	
-	public bool showBuildSample=true;
-	
 	public int fastForwardSpeed=3;
 	
 	public bool enableTargetPrioritySwitch=true;
 	public bool enableTargetDirectionSwitch=true;
-	
-	public bool alwaysEnableNextButton=true;
-	
-	public string nextLevel="";
-	public string mainMenu="";
 
 	private bool enableSpawnButton=true;
 	
@@ -30,8 +23,10 @@ public class GameUI : MonoBehaviour {
 	
 	private int[] currentBuildList=new int[0];
 	
+#pragma warning disable 0414
 	//indicate if the player have won or lost the game
 	private bool winLostFlag=false;
+#pragma warning restore 0414
 	
 	private bool paused=false;
 	private float timeHolder = 1;
@@ -49,10 +44,10 @@ public class GameUI : MonoBehaviour {
 	private UIButton sound;
 	private UIButton quit;
 	private UIButton replay;
-	
+#pragma warning disable 0414
 	private UIButton energyIcon;
 	private UIButton powerIcon;
-	
+#pragma warning restore 0414
 	private UIVerticalLayout vertBox;
 	private UIVerticalLayout abilityBox;
 	private UIHorizontalLayout towerBox;
@@ -71,17 +66,22 @@ public class GameUI : MonoBehaviour {
 	private UIButton ability2;
 	private UIButton ability3;
 	
+	private UIStateButton tPriority;
+	
 	private UIText text;
 	private UITextInstance waveInfo;
 	private UITextInstance lifeInfo;
 	private UITextInstance energyInfo;
 	private UITextInstance ppInfo;
-	
-//	private Rect topPanelRect=new Rect(-3, -3, Screen.width+6, 28);
-//	private Rect bottomPanelRect;
-//	private Rect buildListRect;
-//	private Rect towerUIRect;
-//	private Rect[] scatteredRectList=new Rect[0];
+	private UITextInstance endInfo;
+	private UITextInstance towerUIName;
+	private UITextInstance towerUILevel;
+	private UITextInstance towerUIType;
+	private UITextInstance towerUIDamage;
+	private UITextInstance towerUICost1;
+	private UITextInstance towerUICost2;
+	private UITextInstance towerUISellVal1;
+	private UITextInstance towerUISellVal2;
 	
 	private static GameUI gameui;
 	void Awake(){
@@ -113,10 +113,7 @@ public class GameUI : MonoBehaviour {
 		text = new UIText( "neuropol", "neuropol.png" );
 		TextInfo();
 		
-		//initiate sample menu, so player can preview the tower in pointNBuild buildphase
-		if(buildMode==_BuildMode.PointNBuild && showBuildSample) BuildManager.InitiateSampleTower();
 		StartCoroutine(MessageCountDown());
-		
 	}
 
 	void OnEnable(){
@@ -134,6 +131,23 @@ public class GameUI : MonoBehaviour {
 	//called when game is over, flag passed indicate user win or lost
 	void OnGameOver(bool flag){
 		winLostFlag=flag;
+		if(flag == true )
+		{
+			EndScenerio("You won!");
+			Debug.Log("You won!");
+		}
+		else
+		{
+			EndScenerio("You Lost!");
+			Debug.Log("You Lost!");
+		}
+	}
+	
+	void EndScenerio( string ending )
+	{
+		endInfo = text.addTextInstance( ending, 0, 0 );
+		endInfo.position = new Vector3( Screen.width/2 - endInfo.width/2, -Screen.height/4, 1 );
+		TogglePause();
 	}
 	
 	//called if a tower is unbuilt or destroyed, check to see if that tower is selected, if so, clear the selection
@@ -149,31 +163,88 @@ public class GameUI : MonoBehaviour {
 	//call to enable/disable pause
 	void TogglePause()
 	{
-		paused=!paused;
-		if(paused){
-			timeHolder = Time.timeScale;
-			Time.timeScale=0;
-			cogCommands();
-			swapButtons( playButton, pause );
-			
-			//close all the button, so user can interact with game when it's paused
-			if(currentSelectedTower!=null){
-				GameControl.ClearSelection();
-				currentSelectedTower=null;
+		if(GameControl.gameState!=_GameState.Ended)
+		{
+			paused=!paused;
+			if(paused){
+				timeHolder = Time.timeScale;
+				Time.timeScale=0;
+				cogCommands();
+				swapButtons( playButton, pause );
+				
+				//close all the button, so user can interact with game when it's paused
+				if(currentSelectedTower!=null){
+					GameControl.ClearSelection();
+					currentSelectedTower=null;
+				}
+				if(buildMenu){
+					buildMenu=false;
+					BuildManager.ClearBuildPoint();
+				}
 			}
-			if(buildMenu){
-				buildMenu=false;
-				BuildManager.ClearBuildPoint();
+			else 
+			{
+				cogCommands();
+				swapButtons( playButton, pause );
+				Time.timeScale=timeHolder;
 			}
 		}
-		else 
+		else if(GameControl.gameState == _GameState.Ended)
 		{
-			cogCommands();
-			swapButtons( playButton, pause );
-			Time.timeScale=timeHolder;
+			if(Time.timeScale != 0){
+				paused=!paused;
+				Time.timeScale=0;
+				cogCommands(); // replace w/ w/e our end menu screen will be **
+				swapButtons( playButton, pause );
+				
+				// close all the button, so user can interact with game when it's paused
+				if(currentSelectedTower!=null){
+					GameControl.ClearSelection();
+					currentSelectedTower=null;
+				}
+				if(buildMenu){
+					buildMenu=false;
+					BuildManager.ClearBuildPoint();
+				}
+			}
 		}
 	}
 	
+	void ResetGUI(int choice = 0)
+	{
+		switch(choice)
+		{
+			// for all gui
+		case 0:
+			buildMenu=false;
+			DestroyTowerUI(1);
+			BuildManager.ClearBuildPoint();
+			GameControl.ClearSelection();
+			towerBox.position = new Vector2( 0, Screen.height );
+			break;
+			// for towerUI
+		case 1:
+			DestroyTowerUI(1);
+			GameControl.ClearSelection();
+			break;
+			// for tower selection gui
+		case 2:
+			buildMenu = false;
+			BuildManager.ClearBuildPoint();
+			towerBox.position = new Vector2( 0, Screen.height );
+			break;
+			// clear build point
+		case 3:
+			buildMenu = false;
+			BuildManager.ClearBuildPoint();
+			break;
+		default:
+			Debug.Log("error out of bounds");
+			break;
+		}
+	}
+	
+	private bool click = false;
 	// Update is called once per frame
 	void Update () 
 	{
@@ -181,94 +252,163 @@ public class GameUI : MonoBehaviour {
 			if(buildMode==_BuildMode.PointNBuild)
 				BuildManager.SetIndicator(Input.mousePosition);
 		#endif
-
-		if(Input.GetMouseButtonUp(0) && !paused){
-			
-			//check if user click on towers
-			UnitTower tower=GameControl.Select(Input.mousePosition);
-			
-			//if user click on tower, select the tower
-			if(tower!=null){
-				currentSelectedTower=tower;
-				
-				//if build mode is active, disable buildmode
-				if(buildMenu){
-					buildMenu=false;
-					BuildManager.ClearBuildPoint();
-//					ClearBuildListRect();
-					towerBox.position = new Vector2( 0, Screen.height );
-				}
-				if(currentSelectedTower != null)
-				{
-					SelectedTowerUI();
-				}
+		upgrade.onTouchUpInside += sender => click = CheckUpgrade();
+		sell.onTouchUpInside += sender => click = SellTower();
+		
+		
+		if(Input.GetMouseButtonUp(0))
+		{
+			UnitTower tower = GameControl.Select(Input.mousePosition);
+			// if gui
+			if(click)
+			{
+				click = false;
 			}
-			//no tower is selected
-			else{
-				//if a tower is selected previously, clear the selection
-				if(currentSelectedTower!=null){
-					GameControl.ClearSelection();
-					currentSelectedTower=null;
-				}
-				
-				//if we are in PointNBuild Mode
-				if(buildMode==_BuildMode.PointNBuild){
-					//check for build point, if true initiate build menu
-					if(BuildManager.CheckBuildPoint(Input.mousePosition) && !buildMenuActive){
-							UpdateBuildList();
-							buildMenu=true;
-							buildMenuActive = true;
-							BuildMenuFix();
+			// else all other options while not paused
+			else if(!paused)
+			{
+				// if tower selected
+				if(tower != null )
+				{
+					Debug.Log("check point 1");
+					if(currentSelectedTower != null)
+					{
+						Debug.Log("current selected tower doesn't = null :( ");
+						// turning off towerUI
+						ResetGUI(1);
 					}
 					//if the build menu is active and your clicking on a button
-					else if(buildMenuActive)
+					if(buildMenu)
 					{
-						buildMenu=false;
-						buildMenuActive = false;
-						BuildManager.ClearBuildPoint();
-//						ClearBuildListRect();
-						towerBox.position = new Vector2( 0, Screen.height );
+						Debug.Log( "build menu again :/" );
+						// turning off build menu if selecting a tower
+						ResetGUI(2);
 					}
-					//if there are no valid build point but we are in build mode, disable it
-					else{
-						if(buildMenu){
-							buildMenu=false;
-							buildMenuActive = false;
-							BuildManager.ClearBuildPoint();
-//							ClearBuildListRect();
-							towerBox.position = new Vector2( 0, Screen.height );
+					currentSelectedTower = tower;
+					SelectedTowerUI();
+				}
+				// tower is not selected
+				else
+				{
+					if(buildMenu)
+					{
+						Debug.Log ("oh no build menu was on when clicking on a tower");
+						// disable build menu
+						ResetGUI(2);
+					}
+					// checking build point
+					if(BuildManager.CheckBuildPoint(Input.mousePosition))
+					{
+						Debug.Log("you clicked the grid didn't you?");
+						UpdateBuildList();
+						buildMenu=true;
+						BuildMenuFix();
+					}
+					else
+					{
+						if(buildMenu)
+						{
+							Debug.Log("should never get here buildmenu else statement");
+							SelectedTowerUI();
+							DestroyTowerUI(1);
+							SelectedTowerUI();
+							ResetGUI(1);
+						}
+						if(towerUIActivated)
+						{
+							Debug.Log("should never get here either toweruiactivated");
+							ResetGUI(1);
 						}
 					}
 				}
 			}
-			
 		}
-		//if right click, 
-		else if(Input.GetMouseButtonUp(1)){
-			//clear the menu
-			if(buildMenu){
-				buildMenu=false;
-				BuildManager.ClearBuildPoint();
-//				ClearBuildListRect();
-				towerBox.position = new Vector2( 0, Screen.height );
-			}
-			
-			//if there are tower currently being selected
-			if(currentSelectedTower!=null){
-				CheckForTarget();
-			}
-		}
+		
+		
+		
+		
+		
+//		if(Input.GetMouseButtonUp(0) && !paused){
+//			
+//			//check if user click on towers
+//			UnitTower tower=GameControl.Select(Input.mousePosition);
+//			// check for gui clicks
+//			if(click)
+//			{
+//				click = false;
+//				if(currentSelectedTower != null )
+//				{
+//					DestroyTowerUI(1);
+//					SelectedTowerUI();
+//// shouldn't need this		towerBox.position = new Vector2( 0, Screen.height );
+//				}
+//			}
+//
+//			//if user click on tower, select the tower
+//			else if(tower!=null){
+//				currentSelectedTower=tower;
+//				
+//				//if build mode is active, disable buildmode
+//				if(buildMenu){
+//					buildMenu=false;
+//					BuildManager.ClearBuildPoint();
+//					towerBox.position = new Vector2( 0, Screen.height );
+//					DestroyTowerUI(1);
+//				}
+//				if(currentSelectedTower != null)
+//				{
+//					if(towerUIActivated)
+//					{
+//						DestroyTowerUI(1);
+//					}
+//					SelectedTowerUI();
+//				}
+//			}
+//			no tower is selected
+//			else{
+//				//if a tower is selected previously, clear the selection
+//				if(currentSelectedTower!=null){
+//					DestroyTowerUI(1);
+//					GameControl.ClearSelection();
+//					currentSelectedTower=null;
+//					towerBox.position = new Vector2( 0, Screen.height );
+//				}
+//				
+//				//if we are in PointNBuild Mode
+//				if(buildMode==_BuildMode.PointNBuild){
+//					//check for build point, if true initiate build menu
+//					if(BuildManager.CheckBuildPoint(Input.mousePosition) && !buildMenuActive && !towerUIActivated){
+//							UpdateBuildList();
+//							buildMenu=true;
+//							buildMenuActive = true;
+//							BuildMenuFix();
+//					}
+//					//if the build menu is active and your clicking on a button
+//					else if(buildMenuActive)
+//					{
+//						buildMenu=false;
+//						buildMenuActive = false;
+//						BuildManager.ClearBuildPoint();
+//						towerBox.position = new Vector2( 0, Screen.height );
+//					}
+//					//if there are no valid build point but we are in build mode, disable it
+//					else{
+//						if(buildMenu){
+//							buildMenu=false;
+//							buildMenuActive = false;
+//							BuildManager.ClearBuildPoint();
+//							towerBox.position = new Vector2( 0, Screen.height );
+//						}
+//					}
+//				}
+//			}
+//		}
 		
 		//if escape key is pressed, toggle pause
 		if(Input.GetKeyUp(KeyCode.Escape)){
 			TogglePause();
 		}
-		
-		if(GameControl.gameState == _GameState.Ended)
-		{
-			GameOverScreen();
-		}
-
+		// destroying and instantiating the text assets since editing them doesn't work.
 		TextDestroy();
 		TextInfo();
 	}
@@ -277,13 +417,6 @@ public class GameUI : MonoBehaviour {
 	void CheckForTarget(){
 		currentSelectedTower.CheckForTarget(Input.mousePosition);
 	}
-	
-//	//clear all ui space occupied by build menu
-//	void ClearBuildListRect(){
-//		if(buildMode==_BuildMode.PointNBuild){
-//			buildListRect=new Rect(0, 0, 0, 0);
-//		}
-//	}
 	
 	// simple gamespeed method
 	void GameSpeed(int speed){
@@ -301,6 +434,7 @@ public class GameUI : MonoBehaviour {
 	
 	void playButtonCommands()
 	{
+		click = true;
 		if(enableSpawnButton)
 		{
 			//if the game is not ended
@@ -324,6 +458,7 @@ public class GameUI : MonoBehaviour {
 	
 	void FFCommands()
 	{
+		click = true;
 		if(!paused)
 		{
 			if(Time.timeScale == 1)
@@ -342,6 +477,7 @@ public class GameUI : MonoBehaviour {
 	
 	void cogCommands()
 	{
+		click = true;
 		if(paused)
 		{
 			vertBox.position = new Vector2( Screen.width/2- sound.width/2, - Screen.height/2 +sound.height*2 + 20 );
@@ -355,25 +491,28 @@ public class GameUI : MonoBehaviour {
 	}
 	
 	void soundCommands()
-	{ Debug.Log("sound button clicked"); }
+	{ 
+		click = true;
+		Debug.Log("sound button clicked");
+	}
 	
 	void quitCommands()
-	{ Debug.Log("quit button clicked"); }
+	{
+		click = true;
+		Debug.Log("quit button clicked");
+	}
 	
 	void GameOverScreen()
 	{
 		// not sure what we are doing for the game over screen yet so this for now... *****
-		
-		string levelCompleteString="Level Complete";
-		if(!winLostFlag) levelCompleteString="Level Lost";
 	}
 	
 	void TextInfo()
 	{
 		waveInfo = text.addTextInstance( "Wave: " +SpawnManager.GetCurrentWave() +"/" +SpawnManager.GetTotalWave(), Screen.width/2 - 50, 5 );
 		lifeInfo = text.addTextInstance( "Life: " +GameControl.GetPlayerLife(), Screen.width - 100, 5 );
-		energyInfo = text.addTextInstance( "" +ResourceManager.GetResourceVal(0), Screen.width - 50, Screen.height - 45 );
-		ppInfo = text.addTextInstance( "" +ResourceManager.GetResourceVal(1), Screen.width - 50, Screen.height - 30 );
+		energyInfo = text.addTextInstance( ResourceManager.GetResourceVal(0).ToString(), Screen.width - 50, Screen.height - 45 );
+		ppInfo = text.addTextInstance( ResourceManager.GetResourceVal(1).ToString(), Screen.width - 50, Screen.height - 30 );
 	}
 	
 	void TextDestroy()
@@ -394,8 +533,10 @@ public class GameUI : MonoBehaviour {
 		cog = UIButton.create( "Cog.png", "Cog.png", 0, 0 );
 		box = UIButton.create( "PanelsCenter2.png", "PanelsCenter2.png", 0, 0 );
 		
+#pragma warning disable 0414
 		energyIcon = UIButton.create( "EnergyIcon.png", "EnergyIcon.png", Screen.width - 100, Screen.height - 45 );
 		powerIcon = UIButton.create( "PowerIcon.png", "PowerIcon.png", Screen.width - 100, Screen.height - 30 );
+#pragma warning restore 0414
 		
 		tower1 = UIButton.create( "FillerButton1.png", "FillerButton1.png", 0, Screen.height );
 		tower2 = UIButton.create( "FillerButton2.png", "FillerButton2.png", 0, Screen.height );
@@ -411,6 +552,14 @@ public class GameUI : MonoBehaviour {
 		ability2 = UIButton.create( "FillerButton2.png", "FillerButton2.png", 0, 0 );
 		ability3 = UIButton.create( "FillerButton3.png", "FillerButton3.png", 0, 0 );
 		
+		upgrade = UIButton.create("upgrade.png", "upgrade.png", 0, Screen.height );
+		sell = UIButton.create("sell.png", "sell.png", 0, Screen.height );
+		// toggle button
+		string[] upStates = new string[] {"FillerButton1.png", "FillerButton2.png", "FillerButton3.png", "FillerButton4.png"};
+		string[] downStates = new string[] {"FillerButton1.png", "FillerButton2.png", "FillerButton3.png", "FillerButton4.png"};
+		tPriority = UIStateButton.create( upStates, downStates, 0, Screen.height );
+		tPriority.onStateChange += (sender, state) => click = currentSelectedTower.SetTargetPriority(state);
+		
 		cog.position = new Vector2( 1, -Screen.height + (cog.height + 1) );
 		box.position = new Vector3( 0, -Screen.height, 2);
 		
@@ -418,15 +567,15 @@ public class GameUI : MonoBehaviour {
 		sound = UIButton.create( "PowerIcon.png", "PowerIcon.png", 0, 0 );
 		quit = UIButton.create( "EnergyIcon.png", "EnergyIcon.png", 0, 0 );
 		replay = UIButton.create( "Cog.png", "Cog.png", 0, 0 );
-		
+		// options button holder
 		vertBox = new UIVerticalLayout( 20 );
 		vertBox.addChild( sound, quit, replay );
 		vertBox.position = new Vector2( 0, Screen.height );
-		
+		// ability button holder
 		abilityBox = new UIVerticalLayout( 0 );
 		abilityBox.addChild( ability1, ability2, ability3 );
 		abilityBox.position = new Vector2( 0 , -Screen.height + cog.height*4 +10 );
-		
+		// button commands
 		playButton.onTouchUpInside += sender => playButtonCommands();
 		pause.onTouchUpInside += sender => TogglePause();
 		fastForward.onTouchUpInside += sender => FFCommands();
@@ -435,7 +584,34 @@ public class GameUI : MonoBehaviour {
 		sound.onTouchUpInside += sender => soundCommands();
 		quit.onTouchUpInside += sender => quitCommands();
 		replay.onTouchUpInside += sender => Application.LoadLevel(Application.loadedLevel);
-
+		
+		ability1.onTouchUpInside += sender => Abilities(1);
+		ability2.onTouchUpInside += sender => Abilities(2);
+		ability3.onTouchUpInside += sender => Abilities(3);
+	}
+	
+	void Abilities( int effect )
+	{
+		click = true;
+		switch( effect )
+		{
+		case 1:
+			// do something 1
+			Debug.Log("pushed ability 1");
+			break;
+		case 2:
+			// do something 2
+			Debug.Log("pushed ability 2");
+			break;
+		case 3:
+			// do something 3
+			Debug.Log("pushed ability 3");
+			break;
+		default:
+			// oh no error!
+			Debug.Log("Error abilities is out of bounds");
+			break;
+		}
 	}
 
 	void BuildMenuFix(){
@@ -479,7 +655,7 @@ public class GameUI : MonoBehaviour {
 		if(BuildManager.BuildTowerPointNBuild(tower)){
 			//built, clear the build menu flag
 			buildMenu=false;
-//			ClearBuildListRect();
+			click = true;
 			towerBox.position = new Vector2( 0, Screen.height );
 			return true;
 		}	
@@ -489,235 +665,130 @@ public class GameUI : MonoBehaviour {
 		}
 	}
 	
+	void DestroyTowerUI(int choices = 1)
+	{
+		switch(choices)
+		{
+		case 1:
+			towerUIName.destroy();
+			towerUILevel.destroy();
+			towerUIType.destroy();
+			towerUIDamage.destroy();
+			towerUICost1.destroy();
+			towerUICost2.destroy();
+			towerUISellVal1.destroy();
+			towerUISellVal2.destroy();
+
+			sell.position = new Vector2( 0, Screen.height );
+			upgrade.position = new Vector2( 0, Screen.height );
+			tPriority.position = new Vector2( 0, Screen.height );
+			
+			towerUIActivated = false;
+			BuildManager.ClearBuildPoint();
+			break;
+		case 2:
+			upgrade.position = new Vector2( 0, Screen.height);
+			break;
+		default:
+			Debug.Log("DestroyTowerUI has a wrong input value" );
+			break;
+		}
+	}
 	
+	bool towerUIActivated = false;
 	//show to draw the selected tower info panel, which include the upgrade and sell button
 	void SelectedTowerUI(){
-		// tower name
-		
-		// tower level
-		
-		// cost to upgrade
-		
-		// sell button
-		
-		// upgrade button
-		
-		// abilities will be static not called when clicking on a tower... Sean's understanding atm
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-//		string towerName=currentSelectedTower.unitName;
-//		
-//
-//		GUI.Label(new Rect(startX, startY+=height, width, height), "Level: "+currentSelectedTower.GetLevel().ToString(), tempGUIStyle);
-//
-//		string towerInfo="";
-//		
-//		_TowerType type=currentSelectedTower.type;
-//		
-//		//display relevent information based on tower type
-//		if(type==_TowerType.ResourceTower){
-//			
-//			//show resource gain value and cooldown only
-//			string val=currentSelectedTower.GetDamage().ToString();
-//			string cd=currentSelectedTower.GetCooldown().ToString("f1");
-//			
-//			string rsc="Increase rsc by "+val+" for every cd "+cd+"sec\n";
-//			
-//			towerInfo+=rsc;
-//			
-//		}
-//		else if(type==_TowerType.SupportTower){
-//			
-//			//show buff info only
-//			BuffStat buffInfo=currentSelectedTower.GetBuff();
-//			
-//			string buff="";
-//			buff+="Buff damage by "+(buffInfo.damageBuff*100).ToString("f1")+"%\n";
-//			buff+="Buff range by "+(buffInfo.rangeBuff*100).ToString("f1")+"%\n";
-//			buff+="Reduce CD by "+(buffInfo.cooldownBuff*100).ToString("f1")+"%\n";
-//			
-//			towerInfo+=buff;
-//			
-//		}
-//		else if(type==_TowerType.Mine){
-//			//show the basic info for mine
-//			if(currentSelectedTower.GetDamage()>0)
-//				towerInfo+="Damage: "+currentSelectedTower.GetDamage().ToString("f1")+"\n";
-//			if(type==_TowerType.TurretTower && currentSelectedTower.GetAoeRadius()>0)
-//				towerInfo+="AOE Radius: "+currentSelectedTower.GetRange().ToString("f1")+"\n";
-//			if(currentSelectedTower.GetStunDuration()>0)
-//				towerInfo+="Stun target for "+currentSelectedTower.GetStunDuration().ToString("f1")+"sec\n";
-//			
-//			//if the mine have damage over time value, display it
-//			Dot dot=currentSelectedTower.GetDot();
-//			float totalDot=dot.damage*(dot.duration/dot.interval);
-//			if(totalDot>0){
-//				string dotInfo="Cause "+totalDot.ToString("f1")+" damage over the next "+dot.duration+" sec\n";
-//				
-//				towerInfo+=dotInfo;
-//			}
-//			
-//			//if the mine have slow value, display it
-//			Slow slow=currentSelectedTower.GetSlow();
-//			if(slow.duration>0){
-//				string slowInfo="Slow target by "+(slow.slowFactor*100).ToString("f1")+"% for "+slow.duration.ToString("f1")+"sec\n";
-//				towerInfo+=slowInfo;
-//			}
-//		}
-//		else if(type==_TowerType.TurretTower || type==_TowerType.AOETower || type==_TowerType.DirectionalAOETower){
-//			
-//			//show the basic info for turret and aoeTower
-//			if(currentSelectedTower.GetDamage()>0)
-//				towerInfo+="Damage: "+currentSelectedTower.GetDamage().ToString("f1")+"\n";
-//			if(currentSelectedTower.GetCooldown()>0)
-//				towerInfo+="Cooldown: "+currentSelectedTower.GetCooldown().ToString("f1")+"sec\n";
-//			if(type==_TowerType.TurretTower && currentSelectedTower.GetAoeRadius()>0)
-//				towerInfo+="AOE Radius: "+currentSelectedTower.GetAoeRadius().ToString("f1")+"\n";
-//			if(currentSelectedTower.GetStunDuration()>0)
-//				towerInfo+="Stun target for "+currentSelectedTower.GetStunDuration().ToString("f1")+"sec\n";
-//			
-//			//if the tower have damage over time value, display it
-//			Dot dot=currentSelectedTower.GetDot();
-//			float totalDot=dot.damage*(dot.duration/dot.interval);
-//			if(totalDot>0){
-//				string dotInfo="Cause "+totalDot.ToString("f1")+" damage over the next "+dot.duration+" sec\n";
-//				
-//				towerInfo+=dotInfo;
-//			}
-//			
-//			//if the tower have slow value, display it
-//			Slow slow=currentSelectedTower.GetSlow();
-//			if(slow.duration>0){
-//				string slowInfo="Slow target by "+(slow.slowFactor*100).ToString("f1")+"% for "+slow.duration.ToString("f1")+"sec\n";
-//				towerInfo+=slowInfo;
-//			}
-//		}
-//		
-//		
-//		//show the tower's description
-//		towerInfo+="\n\n"+currentSelectedTower.description;
-//		
-//		GUIContent towerInfoContent=new GUIContent(towerInfo);
-//			
-//		//draw all the information on screen
-//		float contentHeight= GUI.skin.GetStyle("Label").CalcHeight(towerInfoContent, 200);
-//		GUI.Label(new Rect(startX, startY+=20, width, contentHeight), towerInfoContent);
-//	
-//		
-//		//reset the draw position
-//		startY=Screen.height-180-bottomPanelRect.height;
-//		if(enableTargetPrioritySwitch){
-//			if(currentSelectedTower.type==_TowerType.TurretTower || currentSelectedTower.type==_TowerType.DirectionalAOETower){
-//				if(currentSelectedTower.targetingArea!=_TargetingArea.StraightLine){
-//					GUI.Label(new Rect(startX, startY, 120, 30), "Targeting Priority:");
-//					if(GUI.Button(new Rect(startX+120, startY-3, 100, 30), currentSelectedTower.targetPriority.ToString())){
-//						if(currentSelectedTower.targetPriority==_TargetPriority.Nearest) currentSelectedTower.SetTargetPriority(1);
-//						else if(currentSelectedTower.targetPriority==_TargetPriority.Weakest) currentSelectedTower.SetTargetPriority(2);
-//						else if(currentSelectedTower.targetPriority==_TargetPriority.Toughest) currentSelectedTower.SetTargetPriority(3);
-//						else if(currentSelectedTower.targetPriority==_TargetPriority.Random) currentSelectedTower.SetTargetPriority(0);
-//					}
-//					startY+=30;
-//				}
-//			}
-//		}
-//		
-//		if(enableTargetDirectionSwitch){
-//			if(currentSelectedTower.type==_TowerType.TurretTower || currentSelectedTower.type==_TowerType.DirectionalAOETower){
-//				if(currentSelectedTower.targetingArea!=_TargetingArea.AllAround){
-//					GUI.changed = false;
-//					GUI.Label(new Rect(startX, startY, 120, 30), "Targeting Direction:");
-//					float direction=currentSelectedTower.targetingDirection;
-//					direction=GUI.HorizontalSlider(new Rect(startX+120, startY+4, 100, 30), direction, 0, 359F);
-//					currentSelectedTower.SetTargetingDirection(direction);
-//					if(GUI.changed) GameControl.ShowIndicator(currentSelectedTower);
-//				}
-//			}
-//		}
-//
-//		//check if the tower can be upgrade
-//		bool upgradable=false;
-//		if(!currentSelectedTower.IsLevelCapped() && currentSelectedTower.IsBuilt()){
-//			upgradable=true;
-//		}
-//		
-//		//reset the draw position
-//		startY=Screen.height-50-bottomPanelRect.height;
-//		
-//		//if the tower is eligible to upgrade, draw the upgrade button
-//		if(upgradable){
-//			if(GUI.Button(new Rect(startX, startY, 100, 30), new GUIContent("Upgrade", "1"))){
-//				//upgrade the tower, if false is return, player have insufficient fund
-//				if(!currentSelectedTower.Upgrade()) Debug.Log("Insufficient Resource");
-//			}
-//		}
-//		//sell button
-//		if(currentSelectedTower.IsBuilt()){
-//			if(GUI.Button(new Rect(startX+110, startY, 100, 30), new GUIContent("Sell", "2"))){
-//				currentSelectedTower.Sell();
-//			}
-//		}
-//		
-//		//if the cursor is hover on the upgrade button, show the cost
-//		if(GUI.tooltip=="1"){
-//			Resource[] rscList=GameControl.GetResourceList();
-//			int[] cost=currentSelectedTower.GetCost();
-//			
-//			int count=0;
-//			foreach(int val in cost){
-//				if(val>0) count+=1;
-//			}
-//			
-//			startY-=1+count*25;
-//			//~ for(int i=0; i<3; i++) GUI.Box(new Rect(startX, startY, count*25-3, 150), "");
-//			count=0;
-//			for(int i=0; i<cost.Length; i++){
-//				if(cost[i]>0){
-//					if(rscList[i].icon!=null){
-//						GUI.Label(new Rect(startX+10, startY+count*20, 25, 25), rscList[i].icon);
-//						GUI.Label(new Rect(startX+10+25, startY+count*20+3, 150, 25), "- "+cost[i].ToString());
-//					}
-//					else{
-//						GUI.Label(new Rect(startX+10, startY+count*20, 150, 25), " - "+cost[i].ToString()+rscList[i].name);
-//					}
-//					count+=1;
-//				}
-//			}
-//		}
-//		//if the cursor is hover on the sell button, show the resource gain
-//		else if(GUI.tooltip=="2"){
-//			Resource[] rscList=GameControl.GetResourceList();
-//			int[] sellValue=currentSelectedTower.GetTowerSellValue();
-//			
-//			int count=0;
-//			foreach(int val in sellValue){
-//				if(val>0) count+=1;
-//			}
-//			
-//			startY-=1+count*25;
-//			count=0;
-//			for(int i=0; i<sellValue.Length; i++){
-//				if(sellValue[i]>0){
-//					if(rscList[i].icon!=null){
-//						GUI.Label(new Rect(startX+120, startY+count*20, 25, 25), rscList[i].icon);
-//						GUI.Label(new Rect(startX+120+25, startY+count*20+3, 150, 25), "+ "+sellValue[i].ToString());
-//					}
-//					else{
-//						GUI.Label(new Rect(startX+120, startY+count*20, 150, 25), " + "+sellValue[i].ToString()+rscList[i].name);
-//					}
-//					count+=1;
-//				}
-//			}
-//		}
+		if(currentSelectedTower != null )
+		{
+			towerUIActivated = true;
+			int widthPosition = Screen.width/2 + 50;
+			// TOWER NAME
+			towerUIName = text.addTextInstance( currentSelectedTower.unitName, widthPosition, Screen.height/3 );
+			// TOWER LVL
+			towerUILevel = text.addTextInstance( "Lvl: " +currentSelectedTower.GetLevel(), widthPosition + towerUIName.width + 20, Screen.height/3 );
+			// TOWER TYPE
+			towerUIType = text.addTextInstance( currentSelectedTower.type.ToString() , widthPosition, Screen.height/3 + 20 );
+			// DAMAGE
+			towerUIDamage = text.addTextInstance( "Damage: " +currentSelectedTower.baseStat.damage, widthPosition, Screen.height/3 +40 );
+			// cost to upgrade
+			int[] upgradeCost = currentSelectedTower.GetCost();
+			towerUICost1 = text.addTextInstance( "PP: " +upgradeCost[0], widthPosition, Screen.height/3 + 60 );
+			towerUICost2 = text.addTextInstance( "E: " +upgradeCost[1], widthPosition, Screen.height/3 + 80 );
+			// SELL VALUE
+			int[] sellValue = currentSelectedTower.GetTowerSellValue();
+			towerUISellVal1 = text.addTextInstance( "Sell Value PP: " +sellValue[0], widthPosition, Screen.height/3 + 100 );
+			towerUISellVal2 = text.addTextInstance( "Sell Value E: " +sellValue[1], widthPosition, Screen.height/3 + 120 );
+			
+			//reset the draw position
+			if(enableTargetPrioritySwitch){
+				if(currentSelectedTower.type==_TowerType.TurretTower || currentSelectedTower.type==_TowerType.DirectionalAOETower){
+					if(currentSelectedTower.targetingArea!=_TargetingArea.StraightLine){
+						// Nearest, weakest, toughest, random
+						tPriority.position = new Vector2( widthPosition, -Screen.height/3 - 140 );
+						
+						if(currentSelectedTower.targetPriority==_TargetPriority.Nearest){
+							currentSelectedTower.SetTargetPriority(0);
+							tPriority.state = 0;
+						}
+						else if(currentSelectedTower.targetPriority==_TargetPriority.Weakest){
+							currentSelectedTower.SetTargetPriority(1);
+							tPriority.state = 1;
+						}
+						else if(currentSelectedTower.targetPriority==_TargetPriority.Toughest){
+							currentSelectedTower.SetTargetPriority(2);
+							tPriority.state = 2;
+						}
+						else if(currentSelectedTower.targetPriority==_TargetPriority.Random){
+							currentSelectedTower.SetTargetPriority(3);
+							tPriority.state = 3;
+						}
+					}
+				}
+			}
+			
+			
+			//check if the tower can be upgrade
+			bool upgradable=false;
+			if(!currentSelectedTower.IsLevelCapped() && currentSelectedTower.IsBuilt()){
+				upgradable=true;
+				
+			}
+			if(!upgradable)
+			{
+				DestroyTowerUI(2);
+			}
+			//if the tower is eligible to upgrade, draw the upgrade button
+			if(upgradable){
+				upgrade.position= new Vector2( widthPosition, -Screen.height/3 - 200 );
+			}
+			// SELL BUTTON
+			if(currentSelectedTower.IsBuilt()){
+				sell.position = new Vector2( widthPosition + upgrade.width + 5, -Screen.height/3 - 200 );
+			}
+		}
+	}
+	
+	bool CheckUpgrade()
+	{
+		if(currentSelectedTower.Upgrade())
+		{
+			Debug.Log("upgrade affordable and now upgraded");
+			DestroyTowerUI(1);
+			return true;
+		}
+		else
+		{
+			Debug.Log("Upgrade is not affordable");
+			return false;
+		}
+	}
+	bool SellTower()
+	{
+		currentSelectedTower.Sell();
+		GameControl.ClearSelection();
+		currentSelectedTower = null;
+		DestroyTowerUI(1);
+		return true;
 	}
 	
 	//called whevenever the build list is called up

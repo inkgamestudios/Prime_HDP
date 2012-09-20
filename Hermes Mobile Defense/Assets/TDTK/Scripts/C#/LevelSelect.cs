@@ -73,12 +73,15 @@ public class LevelSelect : MonoBehaviour
 		Stage1Tab.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Stage2Tab.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
 		Stage3Tab.highlightedTouchOffsets = new UIEdgeOffsets( 30 );
+		
 		//Stage 1 - 3 positioning
 		Stage1Tab.position = new Vector2( 0, 0 );
 		Stage2Tab.position = new Vector2( 1* Screen.width/3, 0 );
 		Stage3Tab.position = new Vector2( 2* Screen.width/3, 0 );
+		
 		//Instantiates buttons
 		Buttons();
+		
 		//Confirmation that buttons were pushed
 		Stage1Tab.onTouchUpInside += sender => Debug.Log("stage 1 tab clicked");
 		Stage1Tab.onTouchUpInside += sender => SwitchFunction(1);

@@ -2,9 +2,9 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\TDTK\Scripts\C#\GameUI.cs">
     <Files>
-      <File FileName="Assets\TDTK\Scripts\C#\GameUI.cs" Line="430" Column="52" />
-      <File FileName="Assets\TDTK\Scripts\C#\GameControl.cs" Line="1" Column="1" />
-      <File FileName="Assets\TDTK\Scripts\C#\ResourceManager.cs" Line="1" Column="1" />
+      <File FileName="Assets\TDTK\Scripts\C#\Encyclopedia.cs" Line="1" Column="1" />
+      <File FileName="Assets\TDTK\Scripts\C#\LevelSelect.cs" Line="83" Column="7" />
+      <File FileName="Assets\TDTK\Scripts\C#\GameUI.cs" Line="787" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

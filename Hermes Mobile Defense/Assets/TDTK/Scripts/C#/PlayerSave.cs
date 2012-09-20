@@ -136,8 +136,7 @@ public class PlayerSave : MonoBehaviour
 			{
 				unlockedT[x] = true;
 				x++;
-			}
-				
+			}	
 		}
 		foreach(int i in holder2)
 		{
@@ -155,7 +154,6 @@ public class PlayerSave : MonoBehaviour
 				x++;
 			}
 		}
-		
 	}
 	
 	// SetStage is called in Level Select and hardcoded the variables for stage and lvl ref
@@ -193,7 +191,7 @@ public class PlayerSave : MonoBehaviour
 	// checks if the level is complete and if it is it saves the end score into the local array.
 	private void SetScore()
 	{
-		score = GameControl.GetResourceVal(2); // need to check if this works
+//		score = GameControl.GetResourceVal(2); // need to check if this works
 		// sorts the new score
 		Sorter ( stageNumber, lvlNumber );
 		// updates the save file
@@ -272,7 +270,7 @@ public class PlayerSave : MonoBehaviour
 		// Also need tower names...
 		if( tower1 )
 		{
-			towerObj = (GameObject)Instantiate(Resources.Load("TowerAOE"));
+			towerObj = (GameObject)Instantiate(Resources.Load("TowerTurret_Missile"));
 			PSTowers[counter] = towerObj.GetComponent<UnitTower>();
 			towerObj.SetActiveRecursively(false);
 			++counter;
